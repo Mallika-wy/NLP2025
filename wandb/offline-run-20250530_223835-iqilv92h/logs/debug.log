@@ -1,0 +1,22 @@
+2025-05-30 22:38:35,742 INFO    MainThread:25636 [wandb_setup.py:_flush():70] Current SDK version is 0.19.11
+2025-05-30 22:38:35,742 INFO    MainThread:25636 [wandb_setup.py:_flush():70] Configure stats pid to 25636
+2025-05-30 22:38:35,742 INFO    MainThread:25636 [wandb_setup.py:_flush():70] Loading settings from C:\Users\Mallika\.config\wandb\settings
+2025-05-30 22:38:35,742 INFO    MainThread:25636 [wandb_setup.py:_flush():70] Loading settings from d:\Courses\NLP\NLP2025\wandb\settings
+2025-05-30 22:38:35,742 INFO    MainThread:25636 [wandb_setup.py:_flush():70] Loading settings from environment variables
+2025-05-30 22:38:35,742 INFO    MainThread:25636 [wandb_init.py:setup_run_log_directory():724] Logging user logs to d:\Courses\NLP\NLP2025\wandb\offline-run-20250530_223835-iqilv92h\logs\debug.log
+2025-05-30 22:38:35,749 INFO    MainThread:25636 [wandb_init.py:setup_run_log_directory():725] Logging internal logs to d:\Courses\NLP\NLP2025\wandb\offline-run-20250530_223835-iqilv92h\logs\debug-internal.log
+2025-05-30 22:38:35,749 INFO    MainThread:25636 [wandb_init.py:init():852] calling init triggers
+2025-05-30 22:38:35,749 INFO    MainThread:25636 [wandb_init.py:init():857] wandb.init called with sweep_config: {}
+config: {'data': {'train': {'n_samples': 1000, 'v0_range': [0.5, 2.0], 'a_range': [0.1, 0.5]}, 'test_in': {'n_samples': 200, 'v0_range': [0.5, 2.0], 'a_range': [0.1, 0.5]}, 'test_out': {'n_samples': 200, 'v0_range': [2.0, 3.0], 'a_range': [0.5, 1.0]}}, 'model': {'name': 'Qwen/Qwen2.5-0.5B-Instruct', 'max_length': 512}, 'training': {'batch_size': 8, 'learning_rate': '1e-5', 'num_epochs': 10, 'save_steps': 100}, 'testing': {'model_checkpoint_path': 'checkpoints/best_model', 'batch_size': 8, 'num_samples': 100, 'visualization': {'figure_size': [10, 6], 'dpi': 100}}, 'visualization': {'wandb': {'project': 'motion-prediction-rl', 'entity': ''}, 'plotting': {'figure_size': [12, 6], 'style': 'seaborn', 'dpi': 100}}, '_wandb': {}}
+2025-05-30 22:38:35,749 INFO    MainThread:25636 [wandb_init.py:init():893] starting backend
+2025-05-30 22:38:35,984 INFO    MainThread:25636 [wandb_init.py:init():897] sending inform_init request
+2025-05-30 22:38:36,022 INFO    MainThread:25636 [backend.py:_multiprocessing_setup():101] multiprocessing start_methods=spawn, using: spawn
+2025-05-30 22:38:36,023 INFO    MainThread:25636 [wandb_init.py:init():907] backend started and connected
+2025-05-30 22:38:36,025 INFO    MainThread:25636 [wandb_init.py:init():1005] updated telemetry
+2025-05-30 22:38:36,070 INFO    MainThread:25636 [wandb_init.py:init():1029] communicating run to backend with 90.0 second timeout
+2025-05-30 22:38:37,907 INFO    MainThread:25636 [wandb_init.py:init():1104] starting run threads in backend
+2025-05-30 22:38:38,232 INFO    MainThread:25636 [wandb_run.py:_console_start():2573] atexit reg
+2025-05-30 22:38:38,237 INFO    MainThread:25636 [wandb_run.py:_redirect():2421] redirect: wrap_raw
+2025-05-30 22:38:38,237 INFO    MainThread:25636 [wandb_run.py:_redirect():2490] Wrapping output streams.
+2025-05-30 22:38:38,237 INFO    MainThread:25636 [wandb_run.py:_redirect():2513] Redirects installed.
+2025-05-30 22:38:38,240 INFO    MainThread:25636 [wandb_init.py:init():1150] run started, returning control to user process

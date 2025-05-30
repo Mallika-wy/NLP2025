@@ -3,9 +3,8 @@ from transformers import AutoTokenizer
 from typing import Dict, List
 
 class MotionDataset(Dataset):
-    def __init__(self, data: List[Dict], tokenizer_name: str):
+    def __init__(self, data: List[Dict]):
         self.data = data
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         
     def __len__(self):
         return len(self.data)
@@ -13,27 +12,9 @@ class MotionDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         
-        # 编码输入文本
-        inputs = self.tokenizer(
-            item["query"],
-            truncation=True,
-            max_length=512,
-            padding="max_length",
-            return_tensors="pt"
-        )
-        
-        # 编码目标文本
-        response = self.tokenizer(
-            item["response"],
-            truncation=True,
-            max_length=128,
-            padding="max_length",
-            return_tensors="pt"
-        )
-        
+        # GRPO需要的格式：必须包含 prompt，其他字段可选
         return {
-            "input_ids": inputs["input_ids"].squeeze(),
-            "attention_mask": inputs["attention_mask"].squeeze(),
-            "response": item["response"],
-            "response_ids": response["input_ids"].squeeze()
+            "prompt": item["query"],           # 输入提示
+            "target": item["response"],        # 目标输出（用于计算奖励）
+            "reasoning": item.get("reasoning", "")  # 推理过程（用于计算奖励）
         }

@@ -1,0 +1,41 @@
+{
+  "os": "Windows-10-10.0.22631-SP0",
+  "python": "CPython 3.10.15",
+  "startedAt": "2025-05-30T13:49:17.815698Z",
+  "program": "d:\\Courses\\NLP\\NLP2025\\train.py",
+  "codePath": "train.py",
+  "git": {
+    "remote": "git@github.com:Mallika-wy/NLP2025.git",
+    "commit": "9d7c5cda9162150e40873510d15b502c7edb7d7f"
+  },
+  "root": "D:\\Courses\\NLP\\NLP2025",
+  "host": "Mallika",
+  "executable": "d:\\software\\Anaconda\\envs\\pytorch\\python.exe",
+  "codePathLocal": "train.py",
+  "cpu_count": 16,
+  "cpu_count_logical": 22,
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "484949618688",
+      "used": "170584428544"
+    }
+  },
+  "memory": {
+    "total": "33820106752"
+  },
+  "cpu": {
+    "count": 16,
+    "countLogical": 22
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "memoryTotal": "8585740288",
+      "cudaCores": 3072,
+      "architecture": "Ada"
+    }
+  ],
+  "cudaVersion": "12.7"
+}

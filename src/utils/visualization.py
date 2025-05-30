@@ -31,7 +31,10 @@ class TrainingVisualizer:
         self.viz_dir.mkdir(exist_ok=True)
         
         # 设置可视化样式
-        plt.style.use(config["visualization"]["plotting"].get("style", "seaborn"))
+        sns.set_style("whitegrid")
+        plt.style.use('default')
+        
+        # 设置图表参数
         self.figure_size = config["visualization"]["plotting"].get("figure_size", [12, 6])
         self.dpi = config["visualization"]["plotting"].get("dpi", 100)
     
