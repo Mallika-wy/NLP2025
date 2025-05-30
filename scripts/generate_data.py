@@ -1,11 +1,17 @@
-import yaml
 import os
+import sys
+# 添加项目根目录到Python路径
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
+import yaml
 import json
 from src.data.generator import MotionDataGenerator
 
 def main():
     # 加载配置
-    with open("config/config.yaml", "r") as f:
+    config_path = os.path.join(project_root, "config", "config.yaml")
+    with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
     
     # 初始化数据生成器

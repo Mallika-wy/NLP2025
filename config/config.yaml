@@ -38,7 +38,7 @@ testing:
 visualization:
   wandb:
     project: "motion-prediction-rl"
-    entity: "your-username"  # 替换为您的wandb用户名
+    entity: ""  # 替换为您的wandb用户名
   plotting:
     figure_size: [12, 6]
     style: "seaborn"
