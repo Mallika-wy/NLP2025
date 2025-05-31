@@ -1,17 +1,25 @@
 # 数据生成配置
 data:
   train:
-    n_samples: 50
+    n_samples: 1
     v0_range: [0.5, 2.0]
     a_range: [0.1, 0.5]
   test_in:
-    n_samples: 20
+    n_samples: 1
     v0_range: [0.5, 2.0]
     a_range: [0.1, 0.5]
   test_out:
-    n_samples: 20
+    n_samples: 1
     v0_range: [2.0, 3.0]
     a_range: [0.5, 1.0]
+
+# 实验配置
+project: "NLP"
+experiment_name: "qwen-motion-training"
+swanlab:
+  log_dir: "./logs"
+  metrics_update_interval: 10  # 每10步更新一次指标
+  save_model_interval: 100     # 每100步保存一次模型
 
 # 模型配置
 model:
@@ -25,24 +33,14 @@ training:
   num_epochs: 10
   save_steps: 100
 
-# 测试配置
-testing:
-  model_checkpoint_path: "checkpoints/best_model"  # 训练好的模型路径
-  batch_size: 8
-  num_samples: 100  # 用于可视化的样本数量
-  visualization:
-    figure_size: [10, 6]
-    dpi: 100
-
-# 可视化配置
-visualization:
-  wandb:
-    project: "motion-prediction-rl"
-    entity: ""  # 替换为您的wandb用户名
-  plotting:
-    figure_size: [12, 6]
-    style: "seaborn"
-    dpi: 100
+# # 测试配置
+# testing:
+#   model_checkpoint_path: "checkpoints/best_model"  # 训练好的模型路径
+#   batch_size: 8
+#   num_samples: 100  # 用于可视化的样本数量
+#   visualization:
+#     figure_size: [10, 6]
+#     dpi: 100
 
 # 奖励函数配置
-reward_weights: [0.4, 0.1, 0.3, 0.2]  # 对应 accuracy, format, cot, trend 的权重
+reward_weights: [1, 1]  # 对应 accuracy, format, cot, trend 的权重

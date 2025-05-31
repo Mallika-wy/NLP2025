@@ -1,31 +1,18 @@
-import os
 import json
-import wandb
+import swanlab
+from swanlab.integration.transformers import SwanLabCallback
 from trl import GRPOTrainer, GRPOConfig
 from src.data.dataset import MotionDataset
-from src.models.reward import accuracy_reward, format_reward, cot_reward, trend_reward
+from src.models.reward import accuracy_reward, cot_reward, format_reward
 from src.utils.visualization import TrainingVisualizer
 from src.utils.callbacks import VisualizationCallback
 import yaml
 
-# 设置wandb, 离线模式
-os.environ["WANDB_API_KEY"] = "dd6af3f5f51014cd49b6f4ec4e4943d917b46ed6"
-os.environ["WANDB_MODE"] = "offline"
 
 def main():
     # 加载配置
     with open("config/config.yaml", "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    
-    # 初始化wandb
-    wandb.init(
-        project="motion-prediction-rl",
-        config=config,
-        name=config.get("experiment_name", "motion-prediction-training")
-    )
-    
-    # 初始化可视化工具
-    visualizer = TrainingVisualizer(config)
     
     # 加载数据
     with open("data/train/motion_data.json", "r", encoding="utf-8") as f:
@@ -41,20 +28,22 @@ def main():
     reward_funcs = [
         accuracy_reward,
         format_reward,
-        cot_reward,
-        trend_reward
     ]
     
     # 设置训练参数
     grpo_config = GRPOConfig(
         # 基础训练设置
         output_dir="./results",
+        run_name="qwen-motion-training",
         learning_rate=1e-6,            # 从小的学习率开始
         num_train_epochs=10,
-        per_device_train_batch_size=2,
+        per_device_train_batch_size=1,
         gradient_accumulation_steps=4,
         fp16=True,
-        gradient_checkpointing=True,
+        # gradient_checkpointing=True,    
+        # gradient_checkpointing_kwargs= {
+        #     "use_reentrant": True 
+        # },
         
         # GRPO特定参数
         beta=0.04,                     # KL系数，控制与参考模型的差异
@@ -65,21 +54,27 @@ def main():
         reward_weights=config["reward_weights"],  # 从配置文件中读取奖励权重
         
         # 生成参数
-        max_prompt_length=384,        # 最大提示长度
-        max_completion_length=128,    # 最大生成长度
+        max_prompt_length=400,        # 最大提示长度
+        max_completion_length=200,    # 最大生成长度
         num_generations=4,            # 每个提示生成8个样本
         temperature=0.7,             # 稍微降低温度以增加确定性
         top_p=0.9,                   # 使用nucleus sampling
         
         # 日志和可视化
-        logging_steps=10,            # 每10步记录一次日志
-        save_steps=100,             # 每100步保存一次模型
-        log_completions=True,       # 记录生成样本
-        wandb_log_unique_prompts=True,
+        logging_steps=10,
+        save_steps=100,
+        log_completions=True,
+        report_to="none",  # 禁用默认的wandb报告
         
         # 其他优化设置
         disable_dropout=True,       # 训练时禁用dropout
-        mask_truncated_completions=True,  # 处理截断的生成结果
+        mask_truncated_completions=False,  # 处理截断的生成结果
+    )
+
+    # 实例化SwanLabCallback
+    swanlab_callback = SwanLabCallback(
+        project=config["project"], 
+        experiment_name=config["experiment_name"]
     )
 
     # 设置训练器
@@ -88,27 +83,15 @@ def main():
         args=grpo_config,
         train_dataset=train_dataset,
         reward_funcs=reward_funcs,
-        callbacks=[VisualizationCallback(visualizer)]
+        callbacks=[swanlab_callback]
     )
 
     # 开始训练
     trainer.train()
     
-    # 生成训练分析报告
-    visualizer.plot_rewards_history()
-    visualizer.plot_reward_distribution()
-    visualizer.plot_prediction_accuracy()
-    visualizer.plot_learning_curves()
-    training_report = visualizer.generate_training_report()
-    
-    # 保存训练状态
-    visualizer.save_visualization_state()
-    
     # 保存最终模型
     trainer.save_model("./final_model")
-    
-    # 关闭wandb
-    wandb.finish()
+
 
 if __name__ == "__main__":
     main()

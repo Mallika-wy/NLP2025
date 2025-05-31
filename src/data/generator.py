@@ -30,15 +30,25 @@ class MotionDataGenerator:
         target_coords = coords[5:]
         
         prompt = (
-            "给定以下一维匀速运动的坐标序列：\n"
+            "Given coordinates: \n"
             f"{', '.join([f'({x:.2f})' for x in input_coords])}\n"
-            "请分析这些点之间的关系，并预测接下来的8个坐标点。\n\n"
-            "思考步骤：\n"
-            "1. 计算相邻点之间的差值\n"
-            "2. 确认运动是否为匀速运动\n"
-            "3. 计算速度\n"
-            "4. 预测后续坐标\n\n"
-            "预测结果："
+            """
+Follow these steps to analyze and predict:
+1. OBSERVE: What pattern do you notice in these numbers?
+2. ANALYZE: Calculate the differences between consecutive points
+3. VERIFY: Check if the pattern is consistent
+4. PREDICT: Use the pattern to generate next 5 coordinates
+
+Format your answer as:
+[Coordinates]
+(x.xx), (x.xx), ... (exactly 5 points)
+
+[Analysis]
+S1: <observation>
+S2: <calculation>
+S3: <verification>
+S4: <prediction method>
+            """
         )
         
         target = f"{', '.join([f'({x:.2f})' for x in target_coords])}"
