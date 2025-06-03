@@ -1,171 +1,143 @@
 import json
 import torch
-import wandb
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from src.data.dataset import MotionDataset
-from src.models.reward import RewardFunction
-from src.utils.visualization import TrainingVisualizer
 import yaml
-import numpy as np
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
+import os
 
 class TestEvaluator:
-    def __init__(self, model, tokenizer, reward_fn, visualizer):
+    def __init__(self, model, tokenizer, config):
         self.model = model
         self.tokenizer = tokenizer
-        self.reward_fn = reward_fn
-        self.visualizer = visualizer
+        self.config = config
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         
-    def evaluate_batch(self, batch):
+    def process_batch(self, batch_data):
+        """处理一个批次的数据"""
+        # 获取提示和响应
+        prompts = [item["query"] for item in batch_data]
+        responses = [item["response"] for item in batch_data]
+        
+        # tokenize输入
+        encoded = self.tokenizer(
+            prompts,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+            max_length=self.config["model"]["max_length"]
+        )
+        
+        return encoded, responses
+        
+    def evaluate_batch(self, batch_data):
         """评估单个批次"""
-        input_ids = batch["input_ids"].to(self.device)
-        attention_mask = batch["attention_mask"].to(self.device)
+        # 处理输入数据
+        encoded, responses = self.process_batch(batch_data)
+        
+        # 移动到设备
+        input_ids = encoded["input_ids"].to(self.device)
+        attention_mask = encoded["attention_mask"].to(self.device)
         
         with torch.no_grad():
             outputs = self.model.generate(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
-                max_length=512,
+                max_length=self.config["model"]["max_length"],
                 num_return_sequences=1,
+                temperature=self.config["training"]["temperature"],
+                top_p=self.config["training"]["top_p"],
                 pad_token_id=self.tokenizer.pad_token_id,
             )
             
         # 解码预测结果
         predictions = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
-        targets = batch["response"]
         
-        # 计算奖励
-        rewards = self.reward_fn(predictions, targets, [""] * len(predictions))
-        
-        return predictions, rewards
+        return predictions, responses
     
-    def evaluate_dataset(self, dataset, split_name):
+    def evaluate_dataset(self, data, split_name):
         """评估整个数据集"""
-        all_rewards = []
         all_predictions = []
         all_targets = []
+        batch_size = self.config["training"]["per_device_train_batch_size"]
         
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=8)
-        
-        for batch in tqdm(dataloader, desc=f"Evaluating {split_name}"):
-            predictions, rewards = self.evaluate_batch(batch)
-            all_rewards.extend(rewards.cpu().numpy())
+        # 创建批次
+        for i in tqdm(range(0, len(data), batch_size), desc=f"评估 {split_name}"):
+            batch_data = data[i:i + batch_size]
+            predictions, targets = self.evaluate_batch(batch_data)
             all_predictions.extend(predictions)
-            all_targets.extend(batch["response"])
+            all_targets.extend(targets)
             
         return {
-            "rewards": all_rewards,
             "predictions": all_predictions,
             "targets": all_targets,
-            "mean_reward": np.mean(all_rewards),
-            "std_reward": np.std(all_rewards)
         }
-    
-    def visualize_results(self, in_dist_results, out_dist_results):
-        """可视化测试结果"""
-        # 奖励分布对比图
-        plt.figure(figsize=(10, 6))
-        sns.kdeplot(data=in_dist_results["rewards"], label="In-distribution")
-        sns.kdeplot(data=out_dist_results["rewards"], label="Out-of-distribution")
-        plt.xlabel("Reward")
-        plt.ylabel("Density")
-        plt.title("Reward Distribution Comparison")
-        plt.legend()
-        wandb.log({"test/reward_distribution": wandb.Image(plt)})
-        plt.close()
-        
-        # 生成详细的测试报告
-        test_report = {
-            "in_distribution": {
-                "mean_reward": in_dist_results["mean_reward"],
-                "std_reward": in_dist_results["std_reward"],
-                "sample_predictions": list(zip(
-                    in_dist_results["predictions"][:5],
-                    in_dist_results["targets"][:5]
-                ))
-            },
-            "out_of_distribution": {
-                "mean_reward": out_dist_results["mean_reward"],
-                "std_reward": out_dist_results["std_reward"],
-                "sample_predictions": list(zip(
-                    out_dist_results["predictions"][:5],
-                    out_dist_results["targets"][:5]
-                ))
-            }
-        }
-        
-        return test_report
+
 
 def main():
     # 加载配置
-    with open("config/config.yaml", "r") as f:
+    with open("config/config.yaml", "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
     
-    # 初始化wandb
-    wandb.init(
-        project="motion-prediction-rl",
-        config=config,
-        name=config.get("experiment_name", "motion-prediction-testing")
-    )
+    # 设置检查点路径
+    checkpoint_path = "/root/autodl-tmp/results/checkpoint-500"
+    if not os.path.exists(checkpoint_path):
+        raise ValueError(f"检查点路径不存在: {checkpoint_path}")
     
-    # 初始化可视化工具
-    visualizer = TrainingVisualizer(config)
+    print(f"正在加载检查点: {checkpoint_path}")
     
     # 加载模型和tokenizer
     model_name = config["model"]["name"]
-    model_path = config["testing"]["model_checkpoint_path"]
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint_path)
+    model = AutoModelForCausalLM.from_pretrained(
+        checkpoint_path,
+        device_map="auto",
+        torch_dtype=torch.float16 if config["training"].get("fp16", False) else torch.float32
+    )
     
-    # 初始化奖励函数
-    reward_fn = RewardFunction(config, visualizer)
+    # 设置tokenizer的特殊token
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "left"
+    
+    print("模型加载完成")
     
     # 创建评估器
-    evaluator = TestEvaluator(model, tokenizer, reward_fn, visualizer)
+    evaluator = TestEvaluator(model, tokenizer, config)
     
     # 加载测试数据
-    with open("data/test_in/motion_data.json", "r") as f:
+    with open("data/test_in/motion_data.json", "r", encoding="utf-8") as f:
         test_in_data = json.load(f)
-    with open("data/test_out/motion_data.json", "r") as f:
+    with open("data/test_out/motion_data.json", "r", encoding="utf-8") as f:
         test_out_data = json.load(f)
     
-    # 创建测试数据集
-    test_in_dataset = MotionDataset(test_in_data, model_name)
-    test_out_dataset = MotionDataset(test_out_data, model_name)
-    
     # 评估模型
-    print("Evaluating in-distribution data...")
-    in_dist_results = evaluator.evaluate_dataset(test_in_dataset, "in-distribution")
+    print("\n评估in-distribution数据...")
+    in_dist_results = evaluator.evaluate_dataset(test_in_data, "in-distribution")
     
-    print("Evaluating out-of-distribution data...")
-    out_dist_results = evaluator.evaluate_dataset(test_out_dataset, "out-of-distribution")
+    print("\n评估out-of-distribution数据...")
+    out_dist_results = evaluator.evaluate_dataset(test_out_data, "out-of-distribution")
     
-    # 可视化结果
-    test_report = evaluator.visualize_results(in_dist_results, out_dist_results)
+    # 创建结果目录
+    os.makedirs("results/test_in", exist_ok=True)
+    os.makedirs("results/test_out", exist_ok=True)
     
-    # 保存测试报告
-    output_dir = Path("test_results")
-    output_dir.mkdir(exist_ok=True)
+    # 保存预测结果
+    print("\n保存预测结果...")
+    with open("results/test_in/predictions.json", "w", encoding="utf-8") as f:
+        json.dump({
+            "predictions": in_dist_results["predictions"],
+            "targets": in_dist_results["targets"]
+        }, f, ensure_ascii=False, indent=2)
     
-    with open(output_dir / "test_report.json", "w") as f:
-        json.dump(test_report, f, indent=2)
+    with open("results/test_out/predictions.json", "w", encoding="utf-8") as f:
+        json.dump({
+            "predictions": out_dist_results["predictions"],
+            "targets": out_dist_results["targets"]
+        }, f, ensure_ascii=False, indent=2)
     
-    # 打印主要结果
-    print("\nTest Results Summary:")
-    print("In-distribution:")
-    print(f"Mean Reward: {in_dist_results['mean_reward']:.4f}")
-    print(f"Std Reward: {in_dist_results['std_reward']:.4f}")
-    print("\nOut-of-distribution:")
-    print(f"Mean Reward: {out_dist_results['mean_reward']:.4f}")
-    print(f"Std Reward: {out_dist_results['std_reward']:.4f}")
-    
-    # 关闭wandb
-    wandb.finish()
+    print("\n测试完成！结果已保存到 results/test_in 和 results/test_out 目录")
+
 
 if __name__ == "__main__":
     main()

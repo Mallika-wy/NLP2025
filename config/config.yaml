@@ -1,15 +1,15 @@
 # 数据生成配置
 data:
   train:
-    n_samples: 1
+    n_samples: 200
     v0_range: [0.5, 2.0]
     a_range: [0.1, 0.5]
   test_in:
-    n_samples: 1
+    n_samples: 20
     v0_range: [0.5, 2.0]
     a_range: [0.1, 0.5]
   test_out:
-    n_samples: 1
+    n_samples: 20
     v0_range: [2.0, 3.0]
     a_range: [0.5, 1.0]
 
@@ -28,10 +28,38 @@ model:
 
 # 训练配置
 training:
-  batch_size: 8
-  learning_rate: 1e-5
-  num_epochs: 10
+  output_dir: "./results"
+  run_name: "qwen-motion-training"
+  learning_rate: 1e-6
+  num_train_epochs: 10
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  fp16: True
+
+  beta: 0.04
+  epsilon: 0.2
+  num_iterations: 1
+  loss_type: "bnpo"
+  scale_rewards: True
+  reward_weights: [1, 1]
+
+  max_prompt_length: 400
+  max_completion_length: 200
+  num_generations: 4
+  temperature: 0.7
+  top_p: 0.9
+
+  logging_steps: 10
   save_steps: 100
+  log_completions: True
+  report_to: "none"
+  
+  disable_dropout: True
+  mask_truncated_completions: False
+
+  save_strategy: "steps"
+  save_total_limit: 2        # 只保留最新的2个checkpoint
+  save_safetensors: true     # 使用更安全的safetensors格式
 
 # # 测试配置
 # testing:
@@ -41,6 +69,3 @@ training:
 #   visualization:
 #     figure_size: [10, 6]
 #     dpi: 100
-
-# 奖励函数配置
-reward_weights: [1, 1]  # 对应 accuracy, format, cot, trend 的权重

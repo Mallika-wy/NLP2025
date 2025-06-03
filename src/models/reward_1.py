@@ -35,14 +35,14 @@ def extract_step_info(reasoning: str) -> dict:
     return info
 
 def accuracy_reward(prompts: List[str], completions: List[str], **kwargs) -> List[float]:
-    """计算坐标预测的准确性奖励
+    """Calculate accuracy reward for predicted coordinates
     
     Args:
-        prompts: 输入提示列表
-        completions: 模型生成的完成列表
-        kwargs: 必须包含target（目标坐标）
+        prompts: List of input prompts
+        completions: List of model generated completions
+        kwargs: Must contain 'target' with target coordinates
     Returns:
-        每个样本的奖励值列表
+        List of reward values for each sample
     """
     targets = kwargs.get('target', None)
     if not targets:
@@ -51,107 +51,111 @@ def accuracy_reward(prompts: List[str], completions: List[str], **kwargs) -> Lis
     rewards = []
     for completion, target in zip(completions, targets):
         try:
-            # 1. 首先检查是否有Coordinates部分
-            coords_section = re.search(r'\[Coordinates\](.*?)$', completion, re.DOTALL)
+            # 尝试找到 [Coordinates] 部分
+            coords_section = re.search(r'\[Coordinates\](.*?)\[Analysis\]', completion, re.DOTALL)
             if not coords_section:
-                rewards.append(0.0)
+                rewards.append(-1.0)
                 continue
-            
-            # 2. 提取预测的坐标
+                
+            # 从坐标部分提取数字
             coords_text = coords_section.group(1)
             coords_pattern = r'\(([-+]?\d*\.\d{2})\)'
             pred_coords = [float(x) for x in re.findall(coords_pattern, coords_text)]
             
-            # 如果没有找到任何坐标，给0分
-            if not pred_coords:
-                rewards.append(0.0)
-                continue
-            
-            # 3. 提取目标坐标
+            # 从target中提取实际坐标
             actual_coords, _ = parse_coordinates(target)
             
-            # 4. 根据预测坐标数量计算得分
-            n_pred = len(pred_coords)
-            base_score = 0.0
+            # 确保有足够的预测坐标
+            if not pred_coords or len(pred_coords) < 5:
+                rewards.append(-1.0)
+                continue
+                
+            # 只取前5个坐标进行比较
+            pred_coords = pred_coords[:5]
+            actual_coords = actual_coords[:5]
             
-            # 计算要比较的坐标数量
-            n_compare = min(n_pred, len(actual_coords), 5)
-            pred_coords = pred_coords[:n_compare]
-            actual_coords = actual_coords[:n_compare]
-            
-            # 计算MSE
+            # 计算MSE并转换为奖励
             mse = mean_squared_error(actual_coords, pred_coords)
-            accuracy = np.exp(-mse)  # 转换为0-1之间的分数
+            reward = np.exp(-mse)  # 使用指数函数将MSE转换为奖励
             
-            # 根据坐标数量调整分数
-            if n_pred == 5:  # 正好5个坐标，满分
-                base_score = accuracy
-            elif n_pred < 5:  # 少于5个坐标，降低分数
-                base_score = accuracy * 0.8 * (n_pred / 5)
-            else:  # 多于5个坐标，也降低分数
-                base_score = accuracy * 0.9
-            
-            # 额外的精度奖励（两位小数）
+            # 添加额外的精度奖励：如果所有数字都精确到两位小数，给予额外奖励
             if all(len(str(c).split('.')[-1]) == 2 for c in pred_coords):
-                base_score *= 1.1
-            
-            rewards.append(float(base_score))
+                reward *= 1.1  # 增加10%的奖励
+                
+            rewards.append(float(reward))  # 确保返回Python float
             
         except Exception as e:
             print(f"Error in accuracy_reward: {e}")
-            rewards.append(0.0)
+            rewards.append(-1.0)
     
     return rewards
 
+
 def format_reward(prompts: List[str], completions: List[str], **kwargs) -> List[float]:
-    """评估回答的格式规范性
+    """Evaluate response format and structure
     
-    评分标准:
-    1. 基本结构 (0.4): [Analysis] 和 [Coordinates] 标题及其顺序
-    2. 分析部分格式 (0.3): 包含S1-S3的步骤标记
-    3. 坐标格式 (0.3): 在[Coordinates]部分的坐标格式正确性
+    Scoring criteria:
+    1. Basic structure (0.2): [Coordinates] and [Analysis] headers
+    2. Coordinates format (0.3): Exactly 5 coordinates in (x.xx) format
+    3. Analysis steps (0.4): S1-S4 with correct labels
+    4. Overall formatting (0.1): Proper spacing and newlines
     """
     rewards = []
+    
+    # 定义期望的格式模式
+    patterns = {
+        # 基本结构
+        'coords_header': r'\[Coordinates\]',
+        'analysis_header': r'\[Analysis\]',
+        
+        # 坐标格式
+        'coords_format': r'\([-+]?\d+\.\d{2}\)',
+        
+        # 分析步骤
+        'step_patterns': {
+            'S1': r'S1:\s*.*observation',
+            'S2': r'S2:\s*.*calculation',
+            'S3': r'S3:\s*.*verification',
+            'S4': r'S4:\s*.*prediction',
+        }
+    }
     
     for completion in completions:
         score = 0.0
         
-        # 1. 基本结构检查 (0.4分)
-        # 检查是否同时存在两个部分且Analysis在前
-        analysis_pos = completion.find('[Analysis]')
-        coords_pos = completion.find('[Coordinates]')
-        if analysis_pos != -1 and coords_pos != -1:
-            if analysis_pos < coords_pos:  # 顺序正确
-                score += 0.4
-            else:  # 顺序错误但结构完整
+        # 1. 检查基本结构 (0.2分)
+        if re.search(patterns['coords_header'], completion, re.IGNORECASE):
+            score += 0.1
+        if re.search(patterns['analysis_header'], completion, re.IGNORECASE):
+            score += 0.1
+            
+        # 2. 检查坐标格式 (0.3分)
+        coords = re.findall(patterns['coords_format'], completion)
+        if coords:  # 有坐标
+            if len(coords) == 5:  # 正好5个坐标
                 score += 0.2
-        
-        # 2. 分析部分格式检查 (0.3分)
-        if analysis_pos != -1:
-            analysis_text = completion[analysis_pos:coords_pos if coords_pos != -1 else None]
-            step_score = 0.0
-            if re.search(r'S1:', analysis_text):
-                step_score += 0.1
-            if re.search(r'S2:', analysis_text):
-                step_score += 0.1
-            if re.search(r'S3:', analysis_text):
-                step_score += 0.1
-            score += step_score
-        
-        # 3. 坐标部分格式检查 (0.3分)
-        if coords_pos != -1:
-            coords_text = completion[coords_pos:]
-            # 只在[Coordinates]部分检查坐标格式
-            coords = re.findall(r'\(([-+]?\d+\.\d{2})\)', coords_text)
-            if coords:
-                # 检查格式正确性
-                format_correct = all(re.match(r'^[-+]?\d+\.\d{2}$', c) for c in coords)
-                if format_correct:
-                    score += 0.3
-        
-        rewards.append(float(score))
+            # 检查格式是否正确（包括逗号分隔）
+            coords_line = re.search(r'\[Coordinates\].*?\n(.*?)\n', completion, re.DOTALL)
+            if coords_line and re.match(r'\s*\([-+]?\d+\.\d{2}\)(\s*,\s*\([-+]?\d+\.\d{2}\))*\s*$', coords_line.group(1)):
+                score += 0.1
+                
+        # 3. 检查分析步骤 (0.4分)
+        for step, pattern in patterns['step_patterns'].items():
+            if re.search(pattern, completion, re.IGNORECASE):
+                score += 0.1
+                
+        # 4. 检查整体格式 (0.1分)
+        # 检查是否有适当的空行和缩进
+        if re.search(r'\[Coordinates\]\n.*?\n\n\[Analysis\]', completion, re.DOTALL):
+            score += 0.05
+        # 检查是否以换行符结束
+        if completion.strip().endswith('\n'):
+            score += 0.05
+            
+        rewards.append(float(score))  # 确保返回Python float
     
     return rewards
+
 
 # def cot_reward(prompts: List[str], completions: List[str], **kwargs) -> List[float]:
 #     """Compute chain-of-thought reward

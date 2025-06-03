@@ -33,21 +33,16 @@ class MotionDataGenerator:
             "Given coordinates: \n"
             f"{', '.join([f'({x:.2f})' for x in input_coords])}\n"
             """
-Follow these steps to analyze and predict:
-1. OBSERVE: What pattern do you notice in these numbers?
-2. ANALYZE: Calculate the differences between consecutive points
-3. VERIFY: Check if the pattern is consistent
-4. PREDICT: Use the pattern to generate next 5 coordinates
-
-Format your answer as:
-[Coordinates]
-(x.xx), (x.xx), ... (exactly 5 points)
+Please analyze these coordinates and predict the next values.
+Your response should follow this format:
 
 [Analysis]
-S1: <observation>
-S2: <calculation>
-S3: <verification>
-S4: <prediction method>
+S1: Observe the pattern in the sequence
+S2: Calculate the differences and determine the speed
+S3: Use the pattern to predict next coordinates
+
+[Coordinates]
+Write exactly 5 coordinates in (x.xx) format
             """
         )
         
