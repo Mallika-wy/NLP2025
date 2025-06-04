@@ -6,12 +6,12 @@ class MotionDataGenerator:
     def __init__(self, config):
         self.config = config
         
-    def generate_sequence(self, x0: float, v: float, n_points: int = 13) -> List[float]:
+    def generate_sequence(self, x0: float, v: float, n_points: int = 10) -> List[float]:
         """生成单个匀速运动序列
         Args:
             x0: 初始位置
             v: 速度
-            n_points: 总点数（前5个 + 后8个）
+            n_points: 总点数（前5个 + 后5个）
         Returns:
             完整的坐标序列
         """
@@ -30,23 +30,24 @@ class MotionDataGenerator:
         target_coords = coords[5:]
         
         prompt = (
-            "Given coordinates: \n"
-            f"{', '.join([f'({x:.2f})' for x in input_coords])}\n"
-            """
-Please analyze these coordinates and predict the next values.
-Your response should follow this format:
+            "Given coordinates: "
+            f"{', '.join([f'({x:.1f})' for x in input_coords])}\n"
+"""
+Please analyze if this is a uniform linear motion and predict the next 5 values.
+Your response should be concise and follow this format:
 
 [Analysis]
-S1: Observe the pattern in the sequence
-S2: Calculate the differences and determine the speed
-S3: Use the pattern to predict next coordinates
+S1: Is this uniform motion? (Yes/No with one-line explanation)
+S2: Speed = x.x (if uniform)
 
 [Coordinates]
-Write exactly 5 coordinates in (x.xx) format
-            """
+(x.x), (x.x), (x.x), (x.x), (x.x)
+
+[End]
+"""
         )
         
-        target = f"{', '.join([f'({x:.2f})' for x in target_coords])}"
+        target = f"{', '.join([f'({x:.1f})' for x in target_coords])}"
         
         return prompt, target
     
@@ -74,7 +75,6 @@ Write exactly 5 coordinates in (x.xx) format
             prompt, target = self.format_coordinates(coords)
             
             dataset.append({
-                "input_ids": prompt,
                 "query": prompt,
                 "response": target,
             })

@@ -40,15 +40,15 @@ def accuracy_reward(prompts: List[str], completions: List[str], **kwargs) -> Lis
     rewards = []
     for completion, target in zip(completions, targets):
         try:
-            # 1. 首先检查是否有Coordinates部分和End部分
-            coords_section = re.search(r'\[Coordinates\](.*?)\[End\]', completion, re.DOTALL)
+            # 1. 首先检查是否有Coordinates部分
+            coords_section = re.search(r'\[Coordinates\](.*?)$', completion, re.DOTALL)
             if not coords_section:
                 rewards.append(0.0)
                 continue
             
             # 2. 提取预测的坐标
             coords_text = coords_section.group(1)
-            coords_pattern = r'\(([-+]?\d+\.\d{1})\)'
+            coords_pattern = r'\(([-+]?\d*\.\d{2})\)'
             pred_coords = [float(x) for x in re.findall(coords_pattern, coords_text)]
             
             # 如果没有找到任何坐标，给0分
@@ -56,7 +56,7 @@ def accuracy_reward(prompts: List[str], completions: List[str], **kwargs) -> Lis
                 rewards.append(0.0)
                 continue
             
-            # 3. 提取目标坐标
+            # 3. 提取目标坐标（直接从target中提取，因为target就是坐标字符串）
             target_coords = [float(x) for x in re.findall(coords_pattern, target)]
             
             # 4. 根据预测坐标数量计算得分
@@ -80,8 +80,8 @@ def accuracy_reward(prompts: List[str], completions: List[str], **kwargs) -> Lis
             else:  # 多于5个坐标，也降低分数
                 base_score = accuracy * 0.9
             
-            # 额外的精度奖励（一位小数）
-            if all(len(str(c).split('.')[-1]) == 1 for c in pred_coords):
+            # 额外的精度奖励（两位小数）
+            if all(len(str(c).split('.')[-1]) == 2 for c in pred_coords):
                 base_score *= 1.1
             
             rewards.append(float(base_score))
@@ -96,10 +96,11 @@ def format_reward(prompts: List[str], completions: List[str], **kwargs) -> List[
     """评估回答的格式规范性
     
     评分标准:
-    1. 基本结构 (0.3): [Analysis], [Coordinates] 和 [End] 标题及其顺序
+    1. 基本结构 (0.3): [Analysis] 和 [Coordinates] 标题及其顺序
     2. 分析简洁性 (0.3): 
        - S1回答是否简洁（仅包含Yes/No和一行解释）
-       - S2是否使用正确格式 (Speed = x.x)
+       - S2是否使用正确格式 (Speed = x.xx)
+       - S3是否简洁明了
     3. 坐标格式 (0.4): 正确的坐标格式和数量
     """
     rewards = []
@@ -107,6 +108,7 @@ def format_reward(prompts: List[str], completions: List[str], **kwargs) -> List[
     # 最大允许的字符数
     MAX_S1_LENGTH = 50  # S1步骤的最大字符数
     MAX_S2_LENGTH = 20  # S2步骤的最大字符数
+    MAX_S3_LENGTH = 50  # S3步骤的最大字符数
     
     for completion in completions:
         score = 0.0
@@ -114,43 +116,48 @@ def format_reward(prompts: List[str], completions: List[str], **kwargs) -> List[
         # 1. 基本结构检查 (0.3分)
         analysis_pos = completion.find('[Analysis]')
         coords_pos = completion.find('[Coordinates]')
-        end_pos = completion.find('[End]')
-        
-        if all(pos != -1 for pos in [analysis_pos, coords_pos, end_pos]):
-            if analysis_pos < coords_pos < end_pos:  # 顺序正确
+        if analysis_pos != -1 and coords_pos != -1:
+            if analysis_pos < coords_pos:  # 顺序正确
                 score += 0.3
             else:  # 顺序错误但结构完整
-                score += 0.05
+                score += 0.15
         
         # 2. 分析简洁性检查 (0.3分)
         if analysis_pos != -1:
             analysis_text = completion[analysis_pos:coords_pos if coords_pos != -1 else None]
             
-            # S1检查 (0.15分)
+            # S1检查
             s1_match = re.search(r'S1:(.*?)(?=S2:|$)', analysis_text, re.DOTALL)
             if s1_match:
                 s1_text = s1_match.group(1).strip()
                 if len(s1_text) <= MAX_S1_LENGTH and ('Yes' in s1_text or 'No' in s1_text):
-                    score += 0.15
+                    score += 0.1
             
-            # S2检查 (0.15分)
-            s2_match = re.search(r'S2:(.*?)(?=\[Coordinates\]|$)', analysis_text, re.DOTALL)
+            # S2检查
+            s2_match = re.search(r'S2:(.*?)(?=S3:|$)', analysis_text, re.DOTALL)
             if s2_match:
                 s2_text = s2_match.group(1).strip()
-                if len(s2_text) <= MAX_S2_LENGTH and re.search(r'Speed\s*=\s*[-+]?\d+\.\d{1}', s2_text):
-                    score += 0.15
+                if len(s2_text) <= MAX_S2_LENGTH and re.search(r'Speed\s*=\s*[-+]?\d+\.\d{2}', s2_text):
+                    score += 0.1
+            
+            # S3检查
+            s3_match = re.search(r'S3:(.*?)(?=$)', analysis_text, re.DOTALL)
+            if s3_match:
+                s3_text = s3_match.group(1).strip()
+                if len(s3_text) <= MAX_S3_LENGTH:
+                    score += 0.1
         
         # 3. 坐标格式检查 (0.4分)
-        if coords_pos != -1 and end_pos != -1:
-            coords_text = completion[coords_pos:end_pos]
-            coords = re.findall(r'\(([-+]?\d+\.\d{1})\)', coords_text)
+        if coords_pos != -1:
+            coords_text = completion[coords_pos:]
+            coords = re.findall(r'\(([-+]?\d+\.\d{2})\)', coords_text)
             
             # 检查坐标数量
             if len(coords) == 5:
                 score += 0.2
                 
             # 检查坐标格式
-            if coords and all(re.match(r'^[-+]?\d+\.\d{1}$', c) for c in coords):
+            if coords and all(re.match(r'^[-+]?\d+\.\d{2}$', c) for c in coords):
                 score += 0.2
         
         rewards.append(float(score))

@@ -1,7 +1,7 @@
 # 数据生成配置
 data:
   train:
-    n_samples: 200
+    n_samples: 50
     v0_range: [0.5, 2.0]
     a_range: [0.1, 0.5]
   test_in:
@@ -19,20 +19,20 @@ experiment_name: "qwen-motion-training"
 swanlab:
   log_dir: "./logs"
   metrics_update_interval: 10  # 每10步更新一次指标
-  save_model_interval: 100     # 每100步保存一次模型
+  save_model_interval: 200     # 每100步保存一次模型
 
 # 模型配置
 model:
-  name: "Qwen/Qwen2.5-0.5B-Instruct"
-  max_length: 512
+  name: "/root/autodl-tmp/Qwen2.5-1.5B-Instruct"
+  max_length: 256
 
 # 训练配置
 training:
-  output_dir: "./results"
+  output_dir: "/root/autodl-tmp/result"
   run_name: "qwen-motion-training"
-  learning_rate: 1e-6
+  learning_rate: 0.000001
   num_train_epochs: 10
-  per_device_train_batch_size: 4
+  per_device_train_batch_size: 1
   gradient_accumulation_steps: 4
   fp16: True
 
@@ -41,10 +41,10 @@ training:
   num_iterations: 1
   loss_type: "bnpo"
   scale_rewards: True
-  reward_weights: [1, 1]
+  reward_weights: [5, 1]
 
-  max_prompt_length: 400
-  max_completion_length: 200
+  max_prompt_length: 200
+  max_completion_length: 400
   num_generations: 4
   temperature: 0.7
   top_p: 0.9

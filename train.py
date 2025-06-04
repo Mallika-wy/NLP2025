@@ -1,5 +1,27 @@
+import os
+import sys
+# 添加项目根目录到Python路径
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
+# 设置PyTorch内存分配器配置
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
+from huggingface_hub import login
+
+# 检查环境变量中是否有token
+hf_token = os.getenv("HUGGING_FACE_HUB_TOKEN")
+if not hf_token:
+    print("请设置环境变量HUGGING_FACE_HUB_TOKEN")
+    print("在终端执行: export HUGGING_FACE_HUB_TOKEN='你的token'")
+    sys.exit(1)
+    
+# 使用环境变量中的token登录
+login(hf_token)
+
 import json
 import swanlab
+import torch
 from swanlab.integration.transformers import SwanLabCallback
 from trl import GRPOTrainer, GRPOConfig
 from src.data.dataset import MotionDataset
@@ -8,7 +30,26 @@ import yaml
 import os
 import shutil
 from safetensors.torch import save_file
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
+def setup_model_and_tokenizer(model_name):
+    """设置模型和分词器，应用内存优化"""
+    # 加载模型
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype=torch.float16,
+        low_cpu_mem_usage=True,
+        device_map="auto"
+    )
+    
+    # 启用梯度检查点
+    model.gradient_checkpointing_enable()
+    
+    # 加载tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer.pad_token = tokenizer.eos_token
+    
+    return model, tokenizer
 
 def save_checkpoint(trainer, output_dir):
     """安全地保存检查点"""
@@ -49,16 +90,17 @@ def main():
     # 加载配置
     with open("config/config.yaml", "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    
+
     # 加载数据
     with open("data/train/motion_data.json", "r", encoding="utf-8") as f:
         train_data = json.load(f)
-    
-    # model_name
+        
+    # 设置模型和分词器
     model_name = config["model"]["name"]
+    model, tokenizer = setup_model_and_tokenizer(model_name)
 
     # 创建数据集
-    train_dataset = MotionDataset(train_data)  # 移除 tokenizer_name 参数
+    train_dataset = MotionDataset(train_data)
     
     # 设置奖励函数
     reward_funcs = [
@@ -73,36 +115,40 @@ def main():
         # 基础训练设置
         output_dir=train_config["output_dir"],
         run_name=train_config["run_name"],
-        learning_rate=train_config["learning_rate"],                            # 从小的学习率开始
+        learning_rate=train_config["learning_rate"],
         num_train_epochs=train_config["num_train_epochs"],
         per_device_train_batch_size=train_config["per_device_train_batch_size"],
         gradient_accumulation_steps=train_config["gradient_accumulation_steps"],
         fp16=train_config["fp16"],
         
+        # 内存优化设置
+        gradient_checkpointing=True,
+        optim="adamw_torch_fused",
+        
         # GRPO特定参数
-        beta=train_config["beta"],                                              # KL系数，控制与参考模型的差异
-        epsilon=train_config["epsilon"],                                        # 裁剪范围
-        num_iterations=train_config["num_iterations"],                          # 每个批次的迭代次数
-        loss_type=train_config["loss_type"],                                    # 使用bnpo损失函数
-        scale_rewards=train_config["scale_rewards"],                            # 对奖励进行标准化
-        reward_weights=train_config["reward_weights"],                          # 从配置文件中读取奖励权重
+        beta=train_config["beta"],
+        epsilon=train_config["epsilon"],
+        num_iterations=train_config["num_iterations"],
+        loss_type=train_config["loss_type"],
+        scale_rewards=train_config["scale_rewards"],
+        reward_weights=train_config["reward_weights"],
         
         # 生成参数
-        max_prompt_length=train_config["max_prompt_length"],                    # 最大提示长度
-        max_completion_length=train_config["max_completion_length"],            # 最大生成长度
-        num_generations=train_config["num_generations"],                        # 每个提示生成8个样本
-        temperature=train_config["temperature"],                                # 稍微降低温度以增加确定性
-        top_p=train_config["top_p"],                                            # 使用nucleus sampling
+        max_prompt_length=train_config["max_prompt_length"],
+        max_completion_length=train_config["max_completion_length"],
+        num_generations=train_config["num_generations"],
+        temperature=train_config["temperature"],
+        top_p=train_config["top_p"],
         
         # 日志和可视化
         logging_steps=train_config["logging_steps"],
         save_steps=train_config["save_steps"],
         log_completions=train_config["log_completions"],
-        report_to=train_config["report_to"],                                    # 禁用默认的wandb报告
+        report_to=train_config["report_to"],
         
         # 其他优化设置
-        disable_dropout=train_config["disable_dropout"],                        # 训练时禁用dropout
-        mask_truncated_completions=train_config["mask_truncated_completions"],  # 处理截断的生成结果
+        disable_dropout=train_config["disable_dropout"],
+        mask_truncated_completions=train_config["mask_truncated_completions"],
     )
 
     # 实例化SwanLabCallback
@@ -113,7 +159,8 @@ def main():
 
     # 设置训练器
     trainer = GRPOTrainer(
-        model=model_name,
+        model=model,
+        tokenizer=tokenizer,
         args=grpo_config,
         train_dataset=train_dataset,
         reward_funcs=reward_funcs,
@@ -122,6 +169,7 @@ def main():
 
     # 开始训练
     try:
+        print("start training")
         trainer.train()
     except Exception as e:
         if "unexpected pos" in str(e):
@@ -131,7 +179,7 @@ def main():
             raise e
     
     # 保存最终模型
-    final_save_success = save_checkpoint(trainer, "./final_model")
+    final_save_success = save_checkpoint(trainer, "/root/autodl-tmp/final_model")
     if not final_save_success:
         print("警告：最终模型保存失败")
 
