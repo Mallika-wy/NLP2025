@@ -1,0 +1,37 @@
+2025-06-05 17:09:48,465 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 17:09:49,035 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 17:09:49,656 - SelfConsistencyExperiment - INFO - Using dataset: d:\Courses\NLP\NLP2025\data\AQuA-test.json
+2025-06-05 17:09:50,079 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 17:09:51,371 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 17:09:59,407 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 17:12:19,525 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 17:12:19,672 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 17:12:19,799 - SelfConsistencyExperiment - INFO - Using dataset: D:\Courses\NLP\NLP2025\data\AQuA-test.json
+2025-06-05 17:12:20,052 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 17:12:20,177 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 17:12:23,499 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 17:12:36,318 - SelfConsistencyExperiment - INFO - Loading AQuA dataset...
+2025-06-05 17:13:22,243 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 17:13:22,482 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 17:13:22,592 - SelfConsistencyExperiment - INFO - Using dataset: D:\Courses\NLP\NLP2025\data\AQuA-test.json
+2025-06-05 17:13:22,855 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 17:13:23,107 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 17:13:26,318 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 17:13:35,298 - SelfConsistencyExperiment - INFO - Loading AQuA dataset...
+2025-06-05 17:16:22,948 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 17:16:23,294 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 17:16:23,419 - SelfConsistencyExperiment - INFO - Using dataset: D:\Courses\NLP\NLP2025\data\test.json
+2025-06-05 17:16:23,532 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 17:16:23,810 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 17:16:27,121 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 17:16:35,786 - SelfConsistencyExperiment - INFO - Loading AQuA dataset...
+2025-06-05 17:16:44,449 - SelfConsistencyExperiment - INFO - Loaded 200 questions from AQuA dataset.
+2025-06-05 17:16:54,388 - SelfConsistencyExperiment - ERROR - An unexpected error occurred during the experiment: 'Config' object has no attribute 'RESULTS_DIR'
+Traceback (most recent call last):
+  File "D:\Courses\NLP\NLP2025\main.py", line 45, in run_experiment
+    evaluator = Evaluator()
+  File "D:\Courses\NLP\NLP2025\src\utils\evaluator.py", line 16, in __init__
+    ensure_results_dir_exists()
+  File "D:\Courses\NLP\NLP2025\src\utils\evaluator.py", line 11, in ensure_results_dir_exists
+    if not os.path.exists(config.RESULTS_DIR):
+AttributeError: 'Config' object has no attribute 'RESULTS_DIR'

@@ -1,0 +1,148 @@
+Abstract:
+Chain-of-thought prompting combined with pre-trained large language models has
+achieved encouraging results on complex reasoning tasks. In this paper, we propose
+a new decoding strategy, self-consistency, to replace the naive greedy decoding
+used in chain-of-thought prompting. It first samples a diverse set of reasoning paths
+instead of only taking the greedy one, and then selects the most consistent answer
+by marginalizing out the sampled reasoning paths. Self-consistency leverages the
+intuition that a complex reasoning problem typically admits multiple different ways
+of thinking leading to its unique correct answer. Our extensive empirical evaluation
+shows that self-consistency boosts the performance of chain-of-thought prompting
+with a striking margin on a range of popular arithmetic and commonsense reasoning
+benchmarks, including GSM8K (+17.9%), SVAMP (+11.0%), AQuA (+12.2%),
+StrategyQA (+6.4%) and ARC-challenge (+3.9%).
+
+Introduction:
+Although language models have demonstrated remarkable success across a range of NLP tasks, their
+ability to demonstrate reasoning is often seen as a limitation, which cannot be overcome solely by
+increasing model scale (Rae et al., 2021; BIG-bench collaboration, 2021, inter alia). In an effort
+to address this shortcoming, Wei et al. (2022) have proposed chain-of-thought prompting, where
+a language model is prompted to generate a series of short sentences that mimic the reasoning
+process a person might employ in solving a task. For example, given the question “If there are 3
+cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?”, instead
+of directly responding with “5”, a language model would be prompted to respond with the entire
+chain-of-thought: “There are 3 cars in the parking lot already. 2 more arrive. Now there are 3 +
+2 = 5 cars. The answer is 5.”. It has been observed that chain-of-thought prompting significantly
+improves model performance across a variety of multi-step reasoning tasks (Wei et al., 2022).
+In this paper, we introduce a novel decoding strategy called self-consistency to replace the greedy
+decoding strategy used in chain-of-thought prompting (Wei et al., 2022), that further improves
+language models’ reasoning performance by a significant margin. Self-consistency leverages the
+intuition that complex reasoning tasks typically admit multiple reasoning paths that reach a correct
+answer (Stanovich & West, 2000). The more that deliberate thinking and analysis is required for a
+problem (Evans, 2010), the greater the diversity of reasoning paths that can recover the answer.
+Figure 1 illustrates the self-consistency method with an example. We first prompt the language model
+with chain-of-thought prompting, then instead of greedily decoding the optimal reasoning path, we
+propose a “sample-and-marginalize” decoding procedure: we first sample from the language model’s
+decoder to generate a diverse set of reasoning paths; each reasoning path might lead to a different
+final answer, so we determine the optimal answer by marginalizing out the sampled reasoning paths
+to find the most consistent answer in the final answer set. Such an approach is analogous to the
+human experience that if multiple different ways of thinking lead to the same answer, one has greater
+confidence that the final answer is correct. Compared to other decoding methods, self-consistency
+avoids the repetitiveness and local-optimality that plague greedy decoding, while mitigating the
+stochasticity of a single sampled generation.
+Self-consistency is far simpler than prior approaches that either train an additional verifier (Cobbe
+et al., 2021) or train a re-ranker given additional human annotations to improve generation quality
+(Thoppilan et al., 2022). Instead, self-consistency is entirely unsupervised, works off-the-shelf with
+pre-trained language models, requires no additional human annotation, and avoids any additional
+training, auxiliary models or fine-tuning. Self-consistency also differs from a typical ensemble
+approach where multiple models are trained and the outputs from each model are aggregated, it acts
+more like a “self-ensemble” that works on top of a single language model.
+We evaluate self-consistency on a wide range of arithmetic and commonsense reasoning tasks over
+four language models with varying scales: the public UL2-20B (Tay et al., 2022) and GPT-3-175B
+(Brown et al., 2020), and two densely-activated decoder-only language models: LaMDA-137B
+(Thoppilan et al., 2022) and PaLM-540B (Chowdhery et al., 2022). On all four language models,
+self-consistency improves over chain-of-thought prompting by a striking margin across all tasks. In
+particular, when used with PaLM-540B or GPT-3, self-consistency achieves new state-of-the-art levels
+of performance across arithmetic reasoning tasks, including GSM8K (Cobbe et al., 2021) (+17.9%
+absolute accuracy gains), SVAMP (Patel et al., 2021) (+11.0%), AQuA (Ling et al., 2017) (+12.2%),
+and across commonsense reasoning tasks such as StrategyQA (Geva et al., 2021) (+6.4%) and ARCchallenge (Clark et al., 2018) (+3.9%). In additional experiments, we show self-consistency can
+robustly boost performance on NLP tasks where adding a chain-of-thought might hurt performance
+compared to standard prompting (Ye & Durrett, 2022). We also show self-consistency significantly
+outperforms sample-and-rank, beam search, ensemble-based approaches, and is robust to sampling
+strategies and imperfect prompts.
+
+SELF-CONSISTENCY OVER DIVERSE REASONING PATHS
+A salient aspect of humanity is that people think differently. It is natural to suppose that in tasks
+requiring deliberate thinking, there are likely several ways to attack the problem. We propose that
+such a process can be simulated in language models via sampling from the language model’s decoder.
+For instance, as shown in Figure 1, a model can generate several plausible responses to a math
+question that all arrive at the same correct answer (Outputs 1 and 3). Since language models are not
+perfect reasoners, the model might also produce an incorrect reasoning path or make a mistake in
+one of the reasoning steps (e.g., in Output 2), but such solutions are less likely to arrive at the same
+answer. That is, we hypothesize that correct reasoning processes, even if they are diverse, tend to
+have greater agreement in their final answer than incorrect processes.
+We leverage this intuition by proposing the following self-consistency method. First, a language
+model is prompted with a set of manually written chain-of-thought exemplars (Wei et al., 2022). Next,
+we sample a set of candidate outputs from the language model’s decoder, generating a diverse set of
+candidate reasoning paths. Self-consistency is compatible with most existing sampling algorithms,
+including temperature sampling (Ackley et al., 1985; Ficler & Goldberg, 2017), top-k sampling (Fan
+et al., 2018; Holtzman et al., 2018; Radford et al., 2019), and nucleus sampling (Holtzman et al.,
+2020). Finally, we aggregate the answers by marginalizing out the sampled reasoning paths and
+choosing the answer that is the most consistent among the generated answers.
+In more detail, assume the generated answers ai are from a fixed answer set, ai ∈ A, where
+i = 1, . . . , m indexes the m candidate outputs sampled from the decoder. Given a prompt and a
+question, self-consistency introduces an additional latent variable ri
+, which is a sequence of tokens
+representing the reasoning path in the i-th output, then couples the generation of (ri
+, ai) where
+ri → ai
+, i.e., generating a reasoning path ri
+is optional and only used to reach the final answer ai
+. As
+an example, consider Output 3 from Figure 1: the first few sentences “She eats 3 for breakfast ... So
+she has 9 eggs * $2 = $18.” constitutes ri
+, while the answer 18 from the last sentence, “The answer
+is $18”, is parsed as ai
+.
+1 After sampling multiple (ri
+, ai) from the model’s decoder, self-consistency
+applies a marginalization over ri by taking a majority vote over ai
+, i.e., arg maxa
+Pm
+i=1 1(ai = a),
+or as we defined as the most “consistent” answer among the final answer set.
+In Table 1, we show the test accuracy over a set of reasoning tasks by using different answer
+aggregation strategies. In addition to majority vote, one can also weight each (ri
+, ai) by P(ri
+, ai
+|
+prompt, question) when aggregating the answers. Note to compute P(ri
+, ai
+| prompt, question), we
+can either take the unnormalized probability of the model generating (ri
+, ai) given (prompt, question),
+or we can normalize the conditional probability by the output length (Brown et al., 2020), i.e.,
+P(ri
+, ai
+| prompt, question) = exp 1
+K
+PK
+k=1 log P (tk|prompt,question,t1,...,tk−1)
+, (1)
+where log P(tk | prompt, question, t1, . . . , tk−1) is the log probability of generating the k-th token
+tk in (ri
+, ai) conditioned on the previous tokens, and K is the total number of tokens in (ri
+, ai).
+In Table 1, we show that taking the “unweighted sum”, i.e., taking a majority vote directly over ai
+yields a very similar accuracy as aggregating using the “normalized weighted sum”. We took a closer
+look at the model’s output probabilities and found this is because for each (ri
+, ai), the normalized
+conditional probabilities P(ri
+, ai
+| prompt, question) are quite close to each other, i.e., the language
+model regards those generations as “similarly likely”.2 Additionally, when aggregating the answers,
+the results in Table 1 show that the “normalized” weighted sum (i.e., Equation 1) yields a much
+higher accuracy compared to its unnormalized counterpart. For completeness, in Table 1 we also
+report the results by taking a “weighted average”, i.e., each a gets a score of its weighted sum divided
+by Pm
+i=1 1(ai = a), which results in a much worse performance.
+Self-consistency explores an interesting space between open-ended text generation and optimal
+text generation with a fixed answer. Reasoning tasks typically have fixed answers, which is why
+researchers have generally considered greedy decoding approaches (Radford et al., 2019; Wei et al.,
+2022; Chowdhery et al., 2022). However, we have found that even when the desired answer is fixed,
+introducing diversity in the reasoning processes can be highly beneficial; therefore we leverage
+sampling, as commonly used for open-ended text generation (Radford et al., 2019; Brown et al., 2020;
+Thoppilan et al., 2022), to achieve this goal. One should note that self-consistency can be applied
+only to problems where the final answer is from a fixed answer set, but in principle this approach can
+be extended to open-text generation problems if a good metric of consistency can be defined between
+multiple generations, e.g., whether two answers agree or contradict each other.
