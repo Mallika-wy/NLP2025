@@ -21,9 +21,11 @@ class LLMUtils:
                 device_map="auto" # 自动分配到可用GPU
             )
             print(f"Loading tokenizer from {config.model.tokenizer_path}...")
-            self.tokenizer = AutoTokenizer.from_pretrained(config.model.tokenizer_path)
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token # 设置pad_token
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                config.model.tokenizer_path,
+                padding_side='left'
+            )
+            self.tokenizer.pad_token = self.tokenizer.eos_token
             print("Model and tokenizer loaded successfully.")
         except Exception as e:
             print(f"Error loading model or tokenizer: {e}")
@@ -36,7 +38,7 @@ class LLMUtils:
             print("Model or tokenizer not loaded.")
             return None
 
-        inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+        inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.model.device)
         
         # 生成文本
         with torch.no_grad(): # 关闭梯度计算，减少显存占用和计算开销

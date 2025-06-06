@@ -1,3 +1,6 @@
+"""
+主程序入口
+"""
 import torch
 from src.core.model import LLMUtils
 from src.core.self_consistency import SelfConsistencyRunner

@@ -43,7 +43,8 @@ def create_aqua_cot_prompt(question_text):
     """
     # 基本的 CoT 引导语
     # 您可以根据实验效果调整这里的引导语和Few-shot示例
-    prompt = f"{FEW_SHOT_EXAMPLES}\n\nQ: {question_text}\nLet's think step by step."
+    # prompt = f"{FEW_SHOT_EXAMPLES}\n\nQ: {question_text}\nLet's think step by step."
+    prompt = f"Q: {question_text}\nLet's think step by step."
     return prompt
 
 # 测试 (可选)

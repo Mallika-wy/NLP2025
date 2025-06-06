@@ -8,8 +8,8 @@ import configs.config as config
 
 def ensure_results_dir_exists():
     """确保结果目录存在."""
-    if not os.path.exists(config.RESULTS_DIR):
-        os.makedirs(config.RESULTS_DIR)
+    if not os.path.exists(config.paths.results_dir):
+        os.makedirs(config.paths.results_dir)
 
 class Evaluator:
     def __init__(self):
@@ -57,13 +57,13 @@ class Evaluator:
         ensure_results_dir_exists()
         summary = {
             'timestamp': datetime.datetime.now().isoformat(),
-            'model_path': config.MODEL_PATH,
-            'dataset_path': config.DATASET_PATH,
-            'num_reasoning_paths': config.NUM_REASONING_PATHS,
-            'temperature': config.TEMPERATURE,
-            'top_k': config.TOP_K,
-            'max_new_tokens': config.MAX_NEW_TOKENS,
-            'max_samples_tested': config.MAX_SAMPLES if config.MAX_SAMPLES is not None else 'all',
+            'model_path': config.model.model_path,
+            'dataset_path': config.data.dataset_path,
+            'num_reasoning_paths': config.experiment.num_reasoning_paths,
+            'temperature': config.experiment.temperature,
+            'top_k': config.experiment.top_k,
+            'max_new_tokens': config.experiment.max_new_tokens,
+            'max_samples_tested': config.data.max_samples if config.data.max_samples is not None else 'all',
             'total_questions': self.total_count,
             'correct_predictions': self.correct_count,
             'accuracy': self.get_accuracy(),
@@ -75,22 +75,22 @@ class Evaluator:
         }
         
         try:
-            with open(config.RESULTS_FILE, 'w', encoding='utf-8') as f:
+            with open(config.paths.results_file, 'w', encoding='utf-8') as f:
                 json.dump(results_data, f, indent=4, ensure_ascii=False)
-            print(f"Results saved to {config.RESULTS_FILE}")
+            print(f"Results saved to {config.paths.results_file}")
         except Exception as e:
-            print(f"Error saving results to {config.RESULTS_FILE}: {e}")
+            print(f"Error saving results to {config.paths.results_file}: {e}")
             
         # 也可以将摘要信息打印到日志文件
         try:
-            with open(config.LOG_FILE, 'a', encoding='utf-8') as f:
+            with open(config.paths.log_file, 'a', encoding='utf-8') as f:
                 f.write("\n--- Experiment Summary ---\n")
                 for key, value in summary.items():
                     f.write(f"{key}: {value}\n")
                 f.write("-------------------------\n")
-            print(f"Summary also appended to {config.LOG_FILE}")
+            print(f"Summary also appended to {config.paths.log_file}")
         except Exception as e:
-            print(f"Error writing summary to log file {config.LOG_FILE}: {e}")
+            print(f"Error writing summary to log file {config.paths.log_file}: {e}")
 
 # 测试 (可选)
 if __name__ == '__main__':
@@ -111,4 +111,4 @@ if __name__ == '__main__':
 
     print(f"\nAccuracy: {evaluator.get_accuracy():.2f}%")
     evaluator.save_results()
-    print(f"Check {config.RESULTS_DIR} for output files.") 
+    print(f"Check {config.paths.results_dir} for output files.") 

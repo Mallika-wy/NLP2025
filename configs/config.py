@@ -4,6 +4,7 @@
 import os
 from dataclasses import dataclass
 from typing import Optional
+import torch
 
 @dataclass
 class ModelConfig:
@@ -12,7 +13,7 @@ class ModelConfig:
     # tokenizer_path: str = "meta-llama/Llama-2-7b-hf"
     model_path: str = "Qwen/Qwen2.5-0.5B-Instruct"
     tokenizer_path: str = "Qwen/Qwen2.5-0.5B-Instruct"
-    device: str = "cuda"  # "cuda" or "cpu"
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
 @dataclass
 class DataConfig:
@@ -23,11 +24,19 @@ class DataConfig:
 @dataclass
 class ExperimentConfig:
     """实验参数配置"""
-    num_reasoning_paths: int = 5  # 生成的推理路径数量
-    temperature: float = 0.7      # 采样温度
-    top_k: int = 50              # Top-K 采样
-    max_new_tokens: int = 512    # 每条路径最大生成长度
-    random_seed: int = 42        # 随机种子
+    # 批处理参数
+    batch_size: int = 8  # 批处理大小
+    num_workers: int = 0  # 数据加载器工作进程数
+    
+    # 生成参数
+    num_reasoning_paths: int = 5  # 每个问题生成的推理路径数
+    temperature: float = 0.7  # 生成温度
+    top_k: int = 50  # top-k采样参数
+    max_new_tokens: int = 512  # 最大生成token数
+    
+    # 其他参数
+    seed: int = 42  # 随机种子
+    use_few_shot: bool = False  # 是否使用少样本示例
 
 @dataclass
 class PathConfig:

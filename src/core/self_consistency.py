@@ -6,26 +6,74 @@ from collections import Counter
 import configs.config as config
 from src.core.model import LLMUtils
 from src.core.prompt import create_aqua_cot_prompt
+import torch
+from typing import List, Dict, Any
+from tqdm import tqdm
+from src.utils import logger
+from src.data.AQuADataset import create_dataloader
 
 
 class SelfConsistencyRunner:
-    def __init__(self, llm_utils: LLMUtils):
-        self.llm_utils = llm_utils
+    """Self-Consistency推理实现"""
+    
+    def __init__(self, model, tokenizer):
+        """
+        初始化Self-Consistency运行器
+        
+        Args:
+            model: 语言模型
+            tokenizer: 分词器
+        """
+        self.model = model
+        self.tokenizer = tokenizer
+        self.device = config.model.device
 
-    def generate_reasoning_paths(self, processed_question):
-        """为给定问题生成多条推理路径."""
-        prompt = create_aqua_cot_prompt(processed_question)
-        paths = []
-        for i in range(config.experiment.num_reasoning_paths):
-            print(f"  Generating path {i+1}/{config.experiment.num_reasoning_paths}...")
-            generated_text = self.llm_utils.generate_text(
-                prompt_text=prompt,
+    def generate_reasoning_paths(self, prompts: List[str]) -> List[List[str]]:
+        """
+        为一批问题并行生成多条推理路径
+        """
+        batch_size = len(prompts)
+        num_paths = config.experiment.num_reasoning_paths
+        
+        # 将每个prompt重复num_paths次，这样可以一次性生成所有路径
+        expanded_prompts = [p for p in prompts for _ in range(num_paths)]
+        
+        # 一次性对所有prompt进行编码
+        inputs = self.tokenizer(
+            expanded_prompts,
+            padding=True,
+            truncation=True,
+            return_tensors="pt"
+        ).to(self.device)
+
+        input_lengths = [len(self.tokenizer.encode(p)) for p in expanded_prompts]
+        
+        # 一次性生成所有路径
+        with torch.no_grad():
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=config.experiment.max_new_tokens,
                 temperature=config.experiment.temperature,
                 top_k=config.experiment.top_k,
-                max_new_tokens=config.experiment.max_new_tokens
+                do_sample=True,
+                pad_token_id=self.tokenizer.pad_token_id,
+                num_return_sequences=1  # 每个输入生成一个序列
             )
-            paths.append(generated_text)
-            # print(f"    Path {i+1} Raw Output: {generated_text[:200]}...") # 打印部分原始输出用于调试
+        
+        # 解码所有生成的文本
+        all_generations = []
+        for output, input_length in zip(outputs, input_lengths):
+            response = self.tokenizer.decode(
+                output[input_length:],
+                skip_special_tokens=True
+            ).strip()
+            all_generations.append(response)
+
+        # 重组结果，使每个问题的所有路径在一起
+        paths = []
+        for i in range(0, len(all_generations), num_paths):
+            paths.append(all_generations[i:i + num_paths])
+        
         return paths
 
     def extract_answer_from_path(self, reasoning_path):
@@ -71,24 +119,89 @@ class SelfConsistencyRunner:
         most_common = vote_counts.most_common(1)
         return most_common[0][0] if most_common else None
 
-    def run_single_question(self, processed_question):
-        """对单个问题运行Self-Consistency流程."""
-        reasoning_paths = self.generate_reasoning_paths(processed_question)
+    def run(self) -> List[Dict[str, Any]]:
+        """
+        运行Self-Consistency推理
         
-        extracted_answers = []
-        for i, path in enumerate(reasoning_paths):
-            answer = self.extract_answer_from_path(path)
-            # print(f"    Path {i+1} Extracted Answer: {answer}")
-            extracted_answers.append(answer)
+        Returns:
+            推理结果列表
+        """
+        # 创建数据加载器
+        dataloader = create_dataloader(
+            config.data.dataset_path,
+            config.experiment.batch_size,
+            num_workers=config.experiment.num_workers
+        )
+        
+        results = []
+        
+        # 批处理推理
+        for batch in tqdm(dataloader, desc="Processing batches"):
+            # 为每个问题创建提示
+            prompts = [
+                create_aqua_cot_prompt(f"{q}\nOptions:\n" + "\n".join(opts))
+                for q, opts in zip(batch['questions'], batch['options'])
+            ]
             
-        final_answer = self.get_final_answer_by_majority_vote(extracted_answers)
+            # 生成推理路径
+            batch_paths = self.generate_reasoning_paths(prompts)
+            
+            # 处理每个问题的结果
+            for i, (paths, question, options, correct) in enumerate(zip(
+                batch_paths, batch['questions'], batch['options'], batch['corrects']
+            )):
+                # 统计每个选项的投票
+                votes = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0}
+                for path in paths:
+                    # 这里需要实现从推理路径中提取答案的逻辑
+                    answer = self.extract_answer_from_path(path)
+                    if answer in votes:
+                        votes[answer] += 1
+                
+                # 获取得票最多的选项
+                predicted = max(votes.items(), key=lambda x: x[1])[0]
+                
+                # 记录结果
+                results.append({
+                    'question': question,
+                    'options': options,
+                    'correct': correct,
+                    'predicted': predicted,
+                    'votes': votes,
+                    'paths': paths
+                })
+                
+                # 记录日志
+                logger.info(f"Question {len(results)}: Predicted={predicted}, Correct={correct}")
         
-        return {
-            "question": processed_question,
-            "reasoning_paths": reasoning_paths,
-            "extracted_answers": extracted_answers,
-            "final_answer": final_answer
-        }
+        return results
+
+    def extract_answer(self, reasoning_path: str) -> str:
+        """
+        从推理路径中提取答案
+        
+        Args:
+            reasoning_path: 推理路径文本
+            
+        Returns:
+            提取的答案（A-E）
+        """
+        # 这里需要实现具体的答案提取逻辑
+        # 可以使用正则表达式或其他方法
+        # 示例实现：
+        if "answer is A" in reasoning_path.lower():
+            return "A"
+        elif "answer is B" in reasoning_path.lower():
+            return "B"
+        elif "answer is C" in reasoning_path.lower():
+            return "C"
+        elif "answer is D" in reasoning_path.lower():
+            return "D"
+        elif "answer is E" in reasoning_path.lower():
+            return "E"
+        else:
+            # 如果没有找到明确的答案，返回默认值
+            return "A"
 
 
 # 测试 (可选)
@@ -97,7 +210,7 @@ if __name__ == "__main__":
     print("Starting SelfConsistencyRunner test...")
     try:
         llm_utils_instance = LLMUtils()  # 这会尝试加载模型
-        runner = SelfConsistencyRunner(llm_utils_instance)
+        runner = SelfConsistencyRunner(llm_utils_instance.model, llm_utils_instance.tokenizer)
         
         sample_aqua_question_processed = """If a train travels at 100 km/h for 3 hours, how far does it travel?
 Options:
@@ -108,14 +221,17 @@ D) 500 km
 E) 100 km"""
         
         print(f"\nTesting with sample question: {sample_aqua_question_processed}")
-        result = runner.run_single_question(sample_aqua_question_processed)
+        result = runner.run()
         
         print("\n--- Self-Consistency Result ---")
-        print(f"Question: {result['question']}")
-        print(f"Generated Paths ({len(result['reasoning_paths'])}):")
-        for i, path in enumerate(result['reasoning_paths']):
-            print(f"  Path {i+1}: {path[:150]}... (Extracted: {result['extracted_answers'][i]})")
-        print(f"Final Answer by Majority Vote: {result['final_answer']}")
+        for i, result in enumerate(result):
+            print(f"Question {i+1}:")
+            print(f"  Question: {result['question']}")
+            print(f"  Options: {', '.join(result['options'])}")
+            print(f"  Correct Answer: {result['correct']}")
+            print(f"  Predicted Answer: {result['predicted']}")
+            print(f"  Votes: {result['votes']}")
+            print(f"  Paths: {', '.join(result['paths'])}")
 
     except Exception as e:
         print(f"An error occurred during SelfConsistencyRunner test: {e}")

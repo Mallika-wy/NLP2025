@@ -35,3 +35,250 @@ Traceback (most recent call last):
   File "D:\Courses\NLP\NLP2025\src\utils\evaluator.py", line 11, in ensure_results_dir_exists
     if not os.path.exists(config.RESULTS_DIR):
 AttributeError: 'Config' object has no attribute 'RESULTS_DIR'
+2025-06-05 20:56:24,583 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 20:56:24,846 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 20:56:25,085 - SelfConsistencyExperiment - INFO - Using dataset: d:\Courses\NLP\NLP2025\data\test.json
+2025-06-05 20:56:25,213 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 20:56:25,349 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 20:56:31,036 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 20:56:42,293 - SelfConsistencyExperiment - INFO - Loading AQuA dataset...
+2025-06-05 20:56:43,689 - SelfConsistencyExperiment - INFO - Loaded 200 questions from AQuA dataset.
+2025-06-05 20:59:30,630 - SelfConsistencyExperiment - ERROR - An unexpected error occurred during the experiment: 'Config' object has no attribute 'RESULTS_DIR'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 45, in run_experiment
+    evaluator = Evaluator()
+  File "d:\Courses\NLP\NLP2025\src\utils\evaluator.py", line 16, in __init__
+    ensure_results_dir_exists()
+  File "d:\Courses\NLP\NLP2025\src\utils\evaluator.py", line 11, in ensure_results_dir_exists
+    if not os.path.exists(config.RESULTS_DIR):
+AttributeError: 'Config' object has no attribute 'RESULTS_DIR'
+2025-06-05 21:02:55,988 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 21:02:56,206 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 21:02:56,315 - SelfConsistencyExperiment - INFO - Using dataset: d:\Courses\NLP\NLP2025\data\test.json
+2025-06-05 21:02:56,435 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 21:02:56,557 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 21:03:00,158 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 21:03:09,892 - SelfConsistencyExperiment - INFO - Loading AQuA dataset...
+2025-06-05 21:03:11,237 - SelfConsistencyExperiment - INFO - Loaded 200 questions from AQuA dataset.
+2025-06-05 21:03:15,672 - SelfConsistencyExperiment - INFO - 
+Processing question 1/200: What is the greatest number of identical bouquets that can be made out of 28 white and 98 red tulips...
+2025-06-05 21:08:32,168 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 21:08:32,169 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 21:08:32,170 - SelfConsistencyExperiment - INFO - Using dataset: d:\Courses\NLP\NLP2025\data\test.json
+2025-06-05 21:08:32,171 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 21:08:32,171 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 21:08:33,867 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 21:08:41,093 - SelfConsistencyExperiment - INFO - Loading AQuA dataset...
+2025-06-05 21:08:41,097 - SelfConsistencyExperiment - INFO - Loaded 200 questions from AQuA dataset.
+2025-06-05 21:08:41,098 - SelfConsistencyExperiment - INFO - 
+Processing question 1/200: What is the greatest number of identical bouquets that can be made out of 28 white and 98 red tulips...
+2025-06-05 21:10:24,740 - SelfConsistencyExperiment - ERROR - Error processing question 1: What is the greatest number of identical bouquets that can be made out of 28 white and 98 red tulips if no flowers are to be left out? (Two bouquets are identical whenever the number of red tulips in the two bouquets is equal and the number of white tulips in the two bouquets is equal.). Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:24,743 - SelfConsistencyExperiment - INFO - 
+Processing question 2/200: A jeep travels a certain distance taking 6 hours in the forward journey. During the return journey, ...
+2025-06-05 21:10:27,218 - SelfConsistencyExperiment - ERROR - Error processing question 2: A jeep travels a certain distance taking 6 hours in the forward journey. During the return journey, it increased its speed by 12km/hr and took 4 hours. What is the distance travelled by the jeep?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:27,220 - SelfConsistencyExperiment - INFO - 
+Processing question 3/200: Find the total no. of distinct bike no.'s that can beformed using 2 letters followed by 2 no.'s. How...
+2025-06-05 21:10:29,580 - SelfConsistencyExperiment - ERROR - Error processing question 3: Find the total no. of distinct bike no.'s that can beformed using 2 letters followed by 2 no.'s. How many letters need to be distinct?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:29,582 - SelfConsistencyExperiment - INFO - 
+Processing question 4/200: A special cereal mixture contains rice, wheat and corn in the ratio of 2:3:5. If a bag of the mixtur...
+2025-06-05 21:10:39,226 - SelfConsistencyExperiment - ERROR - Error processing question 4: A special cereal mixture contains rice, wheat and corn in the ratio of 2:3:5. If a bag of the mixture contains 3 pounds of rice, how much corn does it contain?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:39,230 - SelfConsistencyExperiment - INFO - 
+Processing question 5/200: A shopkeeper in order to promote his new shop put a discount of 20% on all the items for one day. No...
+2025-06-05 21:10:40,748 - SelfConsistencyExperiment - ERROR - Error processing question 5: A shopkeeper in order to promote his new shop put a discount of 20% on all the items for one day. Now he must sell the items at original price the other day. By what percentage must he increase the price to original?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:40,752 - SelfConsistencyExperiment - INFO - 
+Processing question 6/200: Calculate the maximum distance you can travel with $8.50 on a cab which charges $3.50 for the first ...
+2025-06-05 21:10:51,528 - SelfConsistencyExperiment - ERROR - Error processing question 6: Calculate the maximum distance you can travel with $8.50 on a cab which charges $3.50 for the first quarter-mile and 10 cents for each additional quarter mile.. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:51,531 - SelfConsistencyExperiment - INFO - 
+Processing question 7/200: In a chocolate store, all chocolates are either vanilla or cocoa flavored only. 10% of the chocolate...
+2025-06-05 21:10:53,618 - SelfConsistencyExperiment - ERROR - Error processing question 7: In a chocolate store, all chocolates are either vanilla or cocoa flavored only. 10% of the chocolates are cocoa flavored, 90% of the rest are squashed. What percentage of the chocolates are both vanilla flavored and not squashed?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:53,620 - SelfConsistencyExperiment - INFO - 
+Processing question 8/200: A starts travel towards south 3km, then travel 5 km towards east, and again travels 3 km to north, a...
+2025-06-05 21:10:54,007 - SelfConsistencyExperiment - ERROR - Error processing question 8: A starts travel towards south 3km, then travel 5 km towards east, and again travels 3 km to north, and finally travels 2km towards west. In the end how far from is A from home?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:54,013 - SelfConsistencyExperiment - INFO - 
+Processing question 9/200: There are ten lime soda bottles on a table in a restaurant. They are to be served among two differen...
+2025-06-05 21:10:54,310 - SelfConsistencyExperiment - ERROR - Error processing question 9: There are ten lime soda bottles on a table in a restaurant. They are to be served among two different groups of customers consisting of 5 members each. How many ways are there to create these 2 groups?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:54,313 - SelfConsistencyExperiment - INFO - 
+Processing question 10/200: At 6% per annum simple interest, Rahul borrowed Rs. 500. What amount will he pay to clear the debt a...
+2025-06-05 21:10:54,578 - SelfConsistencyExperiment - ERROR - Error processing question 10: At 6% per annum simple interest, Rahul borrowed Rs. 500. What amount will he pay to clear the debt after 4 years. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:54,580 - SelfConsistencyExperiment - INFO - 
+Processing question 11/200: Tires of a certain brand, when purchased new, last for four years. A customer can choose to purchase...
+2025-06-05 21:10:54,861 - SelfConsistencyExperiment - ERROR - Error processing question 11: Tires of a certain brand, when purchased new, last for four years. A customer can choose to purchase the new tires at a cost of $180 per tire or can have his current tires repaired at a cost of $40 per tire, a repair that will make the current tires last for one additional year. The average cost per year of the new tires is what percent greater than the cost of repairing the current tires?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:54,863 - SelfConsistencyExperiment - INFO - 
+Processing question 12/200: The population of a city is 5265526. If there are 4169516 adults in the city, how many children are ...
+2025-06-05 21:10:55,262 - SelfConsistencyExperiment - ERROR - Error processing question 12: The population of a city is 5265526. If there are 4169516 adults in the city, how many children are there in the city?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:55,266 - SelfConsistencyExperiment - INFO - 
+Processing question 13/200: If Q, a positive integer, has 5 factors, which of the following must be true about Q?
+I. Q is the sq...
+2025-06-05 21:10:55,561 - SelfConsistencyExperiment - ERROR - Error processing question 13: If Q, a positive integer, has 5 factors, which of the following must be true about Q?
+I. Q is the square of a prime number.
+II. Q is the fourth power of a prime number.
+III. Q is the product of two prime numbers.. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:55,564 - SelfConsistencyExperiment - INFO - 
+Processing question 14/200: Winson runs from his home to his school at an average speed of 10 miles/hr, and then walks home alon...
+2025-06-05 21:10:56,314 - SelfConsistencyExperiment - ERROR - Error processing question 14: Winson runs from his home to his school at an average speed of 10 miles/hr, and then walks home along the same route at an average speed of 5 miles/hr. If the whole journey took one hour, how many miles is his home from his school?. Error: 'Config' object has no attribute 'DEVICE'
+Traceback (most recent call last):
+  File "d:\Courses\NLP\NLP2025\main.py", line 62, in run_experiment
+    sc_result = sc_runner.run_single_question(processed_question_text)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 76, in run_single_question
+    reasoning_paths = self.generate_reasoning_paths(processed_question)
+  File "d:\Courses\NLP\NLP2025\src\core\self_consistency.py", line 21, in generate_reasoning_paths
+    generated_text = self.llm_utils.generate_text(
+  File "d:\Courses\NLP\NLP2025\src\core\model.py", line 39, in generate_text
+    inputs = self.tokenizer(prompt_text, return_tensors="pt", padding=True, truncation=True).to(config.DEVICE)
+AttributeError: 'Config' object has no attribute 'DEVICE'
+2025-06-05 21:10:56,317 - SelfConsistencyExperiment - INFO - 
+Processing question 15/200: John likes to have lightly flavored tea every evening. In a 50% strong milk tea, he replaces 15% of ...
+2025-06-05 21:12:17,180 - SelfConsistencyExperiment - INFO - Starting Self-Consistency experiment...
+2025-06-05 21:12:17,182 - SelfConsistencyExperiment - INFO - Using model: Qwen/Qwen2.5-0.5B-Instruct
+2025-06-05 21:12:17,183 - SelfConsistencyExperiment - INFO - Using dataset: d:\Courses\NLP\NLP2025\data\test.json
+2025-06-05 21:12:17,183 - SelfConsistencyExperiment - INFO - Number of reasoning paths: 5
+2025-06-05 21:12:17,184 - SelfConsistencyExperiment - INFO - Temperature: 0.7, Top-K: 50
+2025-06-05 21:12:18,903 - SelfConsistencyExperiment - INFO - Initializing LLM utilities...
+2025-06-05 21:12:26,556 - SelfConsistencyExperiment - INFO - Loading AQuA dataset...
+2025-06-05 21:12:26,560 - SelfConsistencyExperiment - INFO - Loaded 200 questions from AQuA dataset.
+2025-06-05 21:12:26,561 - SelfConsistencyExperiment - INFO - 
+Processing question 1/200: What is the greatest number of identical bouquets that can be made out of 28 white and 98 red tulips...
+2025-06-05 21:21:03,863 - SelfConsistencyExperiment - INFO - Question 1: SC Predicted: B, Correct: D, Match: False
+2025-06-05 21:41:42,734 - SelfConsistencyExperiment - INFO - 正在初始化模型...
+2025-06-05 21:41:55,340 - SelfConsistencyExperiment - INFO - 正在创建Self-Consistency运行器...
+2025-06-05 21:42:02,947 - SelfConsistencyExperiment - INFO - 开始运行批处理推理...
+2025-06-05 21:42:40,324 - SelfConsistencyExperiment - ERROR - 运行时发生错误: Extra data: line 2 column 1 (char 1329)
+2025-06-05 22:34:49,567 - SelfConsistencyExperiment - INFO - 正在初始化模型...
+2025-06-05 22:34:57,262 - SelfConsistencyExperiment - INFO - 正在创建Self-Consistency运行器...
+2025-06-05 22:35:00,112 - SelfConsistencyExperiment - INFO - 开始运行批处理推理...
+2025-06-05 22:57:42,325 - SelfConsistencyExperiment - INFO - 正在初始化模型...
+2025-06-05 22:57:50,237 - SelfConsistencyExperiment - INFO - 正在创建Self-Consistency运行器...
+2025-06-05 22:57:51,525 - SelfConsistencyExperiment - INFO - 开始运行批处理推理...
+2025-06-05 23:14:06,486 - SelfConsistencyExperiment - INFO - 正在初始化模型...
+2025-06-05 23:14:15,266 - SelfConsistencyExperiment - INFO - 正在创建Self-Consistency运行器...
+2025-06-05 23:14:19,138 - SelfConsistencyExperiment - INFO - 开始运行批处理推理...
