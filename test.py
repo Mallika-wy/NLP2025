@@ -5,6 +5,7 @@ from src.data.dataset import MotionDataset
 import yaml
 from tqdm import tqdm
 import os
+import re
 
 class TestEvaluator:
     def __init__(self, model, tokenizer, config):
@@ -13,7 +14,7 @@ class TestEvaluator:
         self.config = config
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
-        
+
     def process_batch(self, batch_data):
         """处理一个批次的数据"""
         # 获取提示和响应
@@ -29,12 +30,15 @@ class TestEvaluator:
             max_length=self.config["model"]["max_length"]
         )
         
-        return encoded, responses
+        # 记录每个prompt的token长度
+        prompt_lengths = [len(self.tokenizer.encode(prompt)) for prompt in prompts]
+        
+        return encoded, responses, prompt_lengths
         
     def evaluate_batch(self, batch_data):
         """评估单个批次"""
         # 处理输入数据
-        encoded, responses = self.process_batch(batch_data)
+        encoded, responses, prompt_lengths = self.process_batch(batch_data)
         
         # 移动到设备
         input_ids = encoded["input_ids"].to(self.device)
@@ -50,11 +54,32 @@ class TestEvaluator:
                 top_p=self.config["training"]["top_p"],
                 pad_token_id=self.tokenizer.pad_token_id,
             )
-            
-        # 解码预测结果
-        predictions = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
         
-        return predictions, responses
+        processed_predictions = []
+        # 对每个输出单独处理
+        for output, prompt_length in zip(outputs, prompt_lengths):
+            # 只取prompt_length之后的token
+            completion_ids = output[prompt_length:]
+            # 解码只包含回答部分的token
+            raw_prediction = self.tokenizer.decode(completion_ids, skip_special_tokens=True)
+            
+            # 处理[End]标签和提取答案
+            end_pos = raw_prediction.find('[End]')
+            if end_pos != -1:
+                raw_prediction = raw_prediction[:end_pos + len('[End]')]
+                
+            # 提取预测坐标
+            answer = ""
+            answer_match = re.search(r'\[ANSWER\](.*?)(?=\[End\]|$)', raw_prediction, re.DOTALL)
+            if answer_match:
+                answer = answer_match.group(1).strip()
+                
+            processed_predictions.append({
+                "processed_output": raw_prediction,
+                "predicted_coordinates": answer
+            })
+        
+        return processed_predictions, responses
     
     def evaluate_dataset(self, data, split_name):
         """评估整个数据集"""
@@ -81,7 +106,7 @@ def main():
         config = yaml.safe_load(f)
     
     # 设置检查点路径
-    checkpoint_path = "/root/autodl-tmp/results/checkpoint-500"
+    checkpoint_path = "/root/autodl-tmp/final_model/checkpoint-60"
     if not os.path.exists(checkpoint_path):
         raise ValueError(f"检查点路径不存在: {checkpoint_path}")
     

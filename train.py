@@ -1,24 +1,5 @@
 import os
 import sys
-# 添加项目根目录到Python路径
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_root)
-
-# 设置PyTorch内存分配器配置
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
-
-from huggingface_hub import login
-
-# 检查环境变量中是否有token
-hf_token = os.getenv("HUGGING_FACE_HUB_TOKEN")
-if not hf_token:
-    print("请设置环境变量HUGGING_FACE_HUB_TOKEN")
-    print("在终端执行: export HUGGING_FACE_HUB_TOKEN='你的token'")
-    sys.exit(1)
-    
-# 使用环境变量中的token登录
-login(hf_token)
-
 import json
 import swanlab
 import torch
@@ -29,27 +10,8 @@ from src.models.reward import accuracy_reward, format_reward
 import yaml
 import os
 import shutil
-from safetensors.torch import save_file
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-def setup_model_and_tokenizer(model_name):
-    """设置模型和分词器，应用内存优化"""
-    # 加载模型
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.float16,
-        low_cpu_mem_usage=True,
-        device_map="auto"
-    )
-    
-    # 启用梯度检查点
-    model.gradient_checkpointing_enable()
-    
-    # 加载tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    tokenizer.pad_token = tokenizer.eos_token
-    
-    return model, tokenizer
 
 def save_checkpoint(trainer, output_dir):
     """安全地保存检查点"""
@@ -97,7 +59,6 @@ def main():
         
     # 设置模型和分词器
     model_name = config["model"]["name"]
-    model, tokenizer = setup_model_and_tokenizer(model_name)
 
     # 创建数据集
     train_dataset = MotionDataset(train_data)
@@ -122,7 +83,7 @@ def main():
         fp16=train_config["fp16"],
         
         # 内存优化设置
-        gradient_checkpointing=True,
+        gradient_checkpointing=False,
         optim="adamw_torch_fused",
         
         # GRPO特定参数
@@ -159,8 +120,7 @@ def main():
 
     # 设置训练器
     trainer = GRPOTrainer(
-        model=model,
-        tokenizer=tokenizer,
+        model=model_name,
         args=grpo_config,
         train_dataset=train_dataset,
         reward_funcs=reward_funcs,

@@ -30,21 +30,26 @@ class MotionDataGenerator:
         target_coords = coords[5:]
         
         prompt = (
-            "Given coordinates: "
-            f"{', '.join([f'({x:.1f})' for x in input_coords])}\n"
-"""
-Please analyze if this is a uniform linear motion and predict the next 5 values.
-Your response should be concise and follow this format:
-
-[Analysis]
-S1: Is this uniform motion? (Yes/No with one-line explanation)
-S2: Speed = x.x (if uniform)
-
-[Coordinates]
-(x.x), (x.x), (x.x), (x.x), (x.x)
-
-[End]
-"""
+            "Please follow the exact format of the example below to analyze the coordinates and make predictions.\n"
+            "Your answer must contain [Analysis], [ANSWER], and [End] tags, with the final 5 predicted coordinates between [ANSWER] and [End] tags.\n\n"
+            "Example:\n"
+            "Input: (2.0), (3.5), (5.0), (6.5), (8.0)\n\n"
+            "[Analysis]\n"
+            "S1: Checking motion pattern\n"
+            "   Δx1 = 3.5 - 2.0 = 1.5\n"
+            "   Δx2 = 5.0 - 3.5 = 1.5\n"
+            "   Δx3 = 6.5 - 5.0 = 1.5\n"
+            "   Δx4 = 8.0 - 6.5 = 1.5\n"
+            "   All intervals are approximately equal ≈ 1.5\n\n"
+            "S2: Speed = Average(Δx/Δt) = 1.5 units/step\n\n"
+            "S3: Prediction using average speed\n"
+            "   Starting from x₀ = 8.0\n"
+            "   x = x₀ + v·t = 8.0 + 1.5t\n\n"
+            "[ANSWER]\n"
+            "(9.5), (11.0), (12.5), (14.0), (15.5)\n"
+            "[End]\n\n"
+            
+            f"Now analyze: {', '.join([f'({x:.1f})' for x in input_coords])}\n"
         )
         
         target = f"{', '.join([f'({x:.1f})' for x in target_coords])}"
