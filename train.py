@@ -1,8 +1,5 @@
 import os
-import sys
 import json
-import swanlab
-import torch
 from swanlab.integration.transformers import SwanLabCallback
 from trl import GRPOTrainer, GRPOConfig
 from src.data.dataset import MotionDataset
@@ -10,7 +7,6 @@ from src.models.reward import accuracy_reward, format_reward
 import yaml
 import os
 import shutil
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def save_checkpoint(trainer, output_dir):

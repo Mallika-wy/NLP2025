@@ -1,0 +1,114 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%}}
+% Beamer Presentation - LaTeX Template
+% Version 2.0 (March 8, 2022)
+% Original Template: https://www.LaTeXTemplates.com
+% Author: Vel (vel@latextemplates.com)
+% License: CC BY-NC-SA 4.0
+
+% Este modelo de apresentação foi 
+% criado a partir do modelo de Giovanni Spadaro.
+% Disponível em: https://github.com/Giovo17/presentation-template-unict-lm-data
+%
+% Adaptado por Lucas Amaral Taylor para criar uma versão especial 
+% para os alunos de Matemática e Estatística da USP (IME-USP).
+% Disponível em: https://github.com/lucasamtaylor01/IME-template
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+% CLASSE DO DOCUMENTO E CONFIGURAÇÕES BÁSICAS
+%----------------------------------------------------------------------------------------
+\documentclass[aspectratio=169]{beamer}
+\graphicspath{{img/}}         % 指定图像文件的存储路径为 img/ 文件夹
+
+%----------------------------------------------------------------------------------------
+% PACOTES NECESSÁRIOS
+%----------------------------------------------------------------------------------------
+\usepackage{
+    booktabs,     % 优化表格的线条样式
+    palatino,     % 设置主字体为 Palatino
+    ctex,         % 中文核心包
+    subcaption    % 支持子图（subfigures）
+}
+\usepackage[default]{opensans}              % 设置辅助字体为 Open Sans
+\usepackage{graphicx}
+\usepackage{caption}
+\input{config/code_langs}                   % 加载代码高亮配置
+\setCJKmainfont{TW-Kai}
+
+%----------------------------------------------------------------------------------------
+% CONFIGURAÇÃO DO TEMA
+%----------------------------------------------------------------------------------------
+% Tema Base
+\usetheme{Madrid}
+\usecolortheme{default}
+\useinnertheme{circles}                      % 内部主题，使用圆形样式
+\useoutertheme{miniframes}                   % 外部主题，显示导航条中的小帧
+\setbeamertemplate{navigation symbols}{}     % 移除导航符号（如箭头等）
+
+% 自定义两种颜色
+\definecolor{primaryColor}{RGB}{20,45,105}   % primaryColor：深蓝色
+\definecolor{secondaryColor}{RGB}{0,100,160} % secondaryColor：中蓝色
+
+% 设置 Beamer 的颜色主题
+\setbeamercolor{structure}{fg=primaryColor}
+\setbeamercolor{palette primary}{bg=primaryColor, fg=white}
+\setbeamercolor{palette secondary}{bg=secondaryColor, fg=white}
+\setbeamercolor{title}{bg=primaryColor, fg=white}
+
+% 头部和底部颜色
+\setbeamercolor{headline}{bg=secondaryColor, fg=white}
+\setbeamercolor{section in head/foot}{bg=primaryColor, fg=white}
+\setbeamercolor{subsection in head/foot}{bg=secondaryColor, fg=white}
+\setbeamercolor{author in head/foot}{bg=primaryColor, fg=white}
+\setbeamercolor{title in head/foot}{bg=secondaryColor, fg=white}
+\setbeamercolor{date in head/foot}{bg=primaryColor, fg=white}
+\setbeamercolor{page number in head/foot}{bg=primaryColor, fg=white}
+
+%----------------------------------------------------------------------------------------
+% 引用管理
+%----------------------------------------------------------------------------------------
+\usepackage[style=alphabetic,backend=biber]{biblatex}   % 使用 biblatex 包管理参考文献，style=alphabetic：引用风格为字母编号，backend=biber：使用 Biber 作为后端
+\addbibresource{bibliografia.bib}                       % bibliografia.bib：引用的 .bib 文件
+
+%----------------------------------------------------------------------------------------
+% 演示文稿信息
+%----------------------------------------------------------------------------------------
+\title{基于GRPO的坐标序列预测}
+\subtitle{自然语言处理课程项目}
+\author{王阳 \and 周齐圣 \and 刘涵 \and 郑思华}
+\institute{计算机科学与技术学院}
+\date{2025年6月}
+
+%----------------------------------------------------------------------------------------
+% INÍCIO DO DOCUMENTO
+%----------------------------------------------------------------------------------------
+\begin{document}
+
+% 标题页
+\begin{frame}
+    \begin{figure}
+        % \includegraphics[width=0.45\linewidth]{img/logo_IME.png}
+    \end{figure}
+    \titlepage
+\end{frame}
+
+% 目录页
+\begin{frame}
+    \frametitle{目录}
+    \tableofcontents
+\end{frame}
+
+% 导入每个section
+\input{sections/section00.tex}  % 标题页和目录
+\input{sections/section01.tex}  % 项目背景与目标
+\input{sections/section02.tex}  % 算法设计
+% \input{sections/section03.tex}  % 实验设计与结果
+
+% 结尾页
+\begin{frame}
+    \begin{center}
+        {\Huge THANKS}
+    \end{center}
+\end{frame}
+
+\end{document}

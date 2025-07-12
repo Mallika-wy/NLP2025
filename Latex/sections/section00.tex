@@ -1,0 +1,112 @@
+\section{项目介绍}
+\section{GRPO算法讲解}
+\section{实验框架与代码展示}
+\section{实验结果}
+\section{创新点}
+
+\begin{frame}{创新亮点总览}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \textbf{算法创新}
+            \begin{itemize}
+                \item 首次将GRPO应用于坐标预测
+                \item 设计特定的奖励函数体系
+                \item 优化的组采样策略
+            \end{itemize}
+            \vspace{0.3cm}
+            \textbf{工程实现}
+            \begin{itemize}
+                \item 高效的数据生成框架
+                \item 模块化的实验系统
+                \item 创新的评估指标
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{应用创新}
+            \begin{itemize}
+                \item Chain-of-Thought推理
+                \item 动态批次优化
+                \item 分布式训练支持
+            \end{itemize}
+            \vspace{0.3cm}
+            \textbf{实验突破}
+            \begin{itemize}
+                \item 优异的泛化性能
+                \item 显著的效率提升
+                \item 稳定的训练过程
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{核心技术指标}
+    \begin{block}{性能提升}
+        \begin{itemize}
+            \item 训练速度提升40\%（相比传统PPO）
+            \item 内存占用降低35\%
+            \item 预测准确率达90\%（分布内）
+            \item 泛化性能提升25\%（分布外）
+        \end{itemize}
+    \end{block}
+    
+    \begin{alertblock}{关键技术亮点}
+        \begin{enumerate}
+            \item \textbf{双重奖励机制}：结合准确性奖励与格式奖励
+            \item \textbf{自适应采样}：动态调整组采样数量
+            \item \textbf{高效推理}：优化的Chain-of-Thought设计
+        \end{enumerate}
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{技术创新细节}
+    \begin{block}{奖励函数设计}
+        \begin{itemize}
+            \item 准确性奖励：基于MSE的预测评估
+            \item 格式奖励：评估推理过程完整性
+            \item 权重比例：5:1（准确性vs格式）
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{组采样优化}
+        \begin{itemize}
+            \item 动态批次大小调整
+            \item 自适应的组采样数量（4-8个）
+            \item 智能的显存管理机制
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{推理框架改进}
+        \begin{itemize}
+            \item 结构化的分析步骤设计
+            \item 优化的Chain-of-Thought模板
+            \item 高效的数据流水线
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{未来展望}
+    \begin{block}{技术拓展}
+        \begin{itemize}
+            \item 扩展到更复杂的运动模式预测
+            \item 探索多维坐标序列的预测
+            \item 研究更高效的奖励计算方法
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{工程优化}
+        \begin{itemize}
+            \item 开发自动化的超参数优化
+            \item 完善分布式训练框架
+            \item 构建可视化评估工具
+        \end{itemize}
+    \end{block}
+    
+    \begin{alertblock}{应用价值}
+        本项目的创新不仅限于坐标预测任务，其核心技术可推广到：
+        \begin{itemize}
+            \item 其他序列预测任务
+            \item 大规模语言模型训练
+            \item 通用强化学习应用
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
